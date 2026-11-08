@@ -1,0 +1,37 @@
+# ---------------------------------------------------------------------------
+# OwoRail Advanced Database Portfolio - files that must never be committed
+# (gitignore comments must sit on their own line)
+# ---------------------------------------------------------------------------
+
+# Secrets and local environment (.env.example IS committed)
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+
+_reference/
+
+# Private working notes
+notes/
+
+# Database dumps and large generated data
+*.dump
+*.backup
+*.sql.gz
+*.bson
+*.archive
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp

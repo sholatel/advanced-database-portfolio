@@ -1,0 +1,57 @@
+# OwoRail Advanced Database Portfolio - single-node databases for portfolios 1-4.
+# The portfolio 5 three-node MongoDB replica set has its own compose file in
+# portfolio-5-distributed-cloud/. Do not run both stacks at the same time.
+#
+# - Credentials come from .env (copy .env.example); compose refuses to start
+#   if a password is missing.
+# - Ports bind to 127.0.0.1 only (least exposure).
+# - The repository is mounted read-only at /workspace, so scripts run in place:
+#     docker compose exec -T postgres psql -U postgres -d oworail -f /workspace/<path>.sql
+#     docker compose exec -T mongo mongosh ... --file /workspace/<path>.js
+name: oworail
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (copy .env.example)}
+      POSTGRES_DB: ${POSTGRES_DB:-oworail}
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "127.0.0.1:${PG_HOST_PORT:-5433}:5432"
+    shm_size: 256mb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./:/workspace:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  mongo:
+    image: mongo:7.0
+    # Cap the WiredTiger cache so the laptop keeps memory headroom.
+    command: ["mongod", "--wiredTigerCacheSizeGB", "0.5"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?Set MONGO_ROOT_PASSWORD in .env (copy .env.example)}
+      TZ: UTC
+    ports:
+      - "127.0.0.1:${MONGO_HOST_PORT:-27018}:27017"
+    volumes:
+      - mongodata:/data/db
+      - ./:/workspace:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+volumes:
+  pgdata:
+  mongodata:

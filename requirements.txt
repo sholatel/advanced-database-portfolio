@@ -1,0 +1,6 @@
+dnspython==2.9.2
+psycopg==3.3.8
+psycopg-binary==3.3.8
+pymongo==4.19.0
+tabulate==0.10.0
+tzdata==2026.6

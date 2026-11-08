@@ -1,0 +1,59 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : M1 - PostgreSQL container status (docker compose ps)
+Captured at : 2026-11-07T23:16:05+01:00 (Africa/Lagos, WAT) | 2026-11-07T22:16:05Z (UTC)
+Command     : docker compose ps postgres
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 0.301 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : postgres (PostgreSQL) 16.15 (Debian 16.15-1.pgdg13+2)  [service 'postgres' in docker-compose.yml]
+================================================================================
+NAME                 IMAGE         COMMAND                  SERVICE    CREATED          STATUS                    PORTS
+oworail-postgres-1   postgres:16   "docker-entrypoint.s…"   postgres   26 seconds ago   Up 32 seconds (healthy)   127.0.0.1:5433->5432/tcp
+
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : M1 - PostgreSQL server version, time zone, encoding
+Captured at : 2026-11-07T23:16:06+01:00 (Africa/Lagos, WAT) | 2026-11-07T22:16:06Z (UTC)
+Command     : docker compose exec -T postgres psql -U postgres -d oworail -c 'SELECT version();' -c 'SHOW timezone;' -c 'SHOW server_encoding;' -c 'SELECT current_database(), current_user, now() AS server_now;'
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 0.608 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : postgres (PostgreSQL) 16.15 (Debian 16.15-1.pgdg13+2)  [service 'postgres' in docker-compose.yml]
+================================================================================
+                                                       version                                                        
+----------------------------------------------------------------------------------------------------------------------
+ PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+(1 row)
+
+ TimeZone 
+----------
+ UTC
+(1 row)
+
+ server_encoding 
+-----------------
+ UTF8
+(1 row)
+
+ current_database | current_user |          server_now           
+------------------+--------------+-------------------------------
+ oworail          | postgres     | 2026-11-07 22:16:15.184626+00
+(1 row)
+
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : M1 - postgres:16 image digest (exact image used)
+Captured at : 2026-11-07T23:16:08+01:00 (Africa/Lagos, WAT) | 2026-11-07T22:16:08Z (UTC)
+Command     : docker image inspect postgres:16 --format '{{index .RepoDigests 0}} | created {{.Created}}'
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 0.130 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+================================================================================
+postgres@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d | created 2026-10-06T01:33:18.890712895Z

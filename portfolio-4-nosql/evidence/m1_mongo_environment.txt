@@ -1,0 +1,46 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : M1 - MongoDB container status (docker compose ps)
+Captured at : 2026-11-07T23:16:17+01:00 (Africa/Lagos, WAT) | 2026-11-07T22:16:17Z (UTC)
+Command     : docker compose ps mongo
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 0.296 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : db version v7.0.45  [service 'mongo' in docker-compose.yml]
+================================================================================
+NAME              IMAGE       COMMAND                  SERVICE   CREATED          STATUS                    PORTS
+oworail-mongo-1   mongo:7.0   "docker-entrypoint.s…"   mongo     38 seconds ago   Up 46 seconds (healthy)   127.0.0.1:27018->27017/tcp
+
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : M1 - MongoDB server version, FCV, storage engine
+Captured at : 2026-11-07T23:16:18+01:00 (Africa/Lagos, WAT) | 2026-11-07T22:16:18Z (UTC)
+Command     : docker compose exec -T mongo sh -c 'mongosh --quiet -u "$MONGO_INITDB_ROOT_USERNAME" -p "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "print(\"db.version(): \" + db.version()); print(\"featureCompatibilityVersion: \" + db.adminCommand({getParameter: 1, featureCompatibilityVersion: 1}).featureCompatibilityVersion.version); const s = db.serverStatus(); print(\"storage engine: \" + s.storageEngine.name); print(\"WiredTiger cache max (bytes): \" + s.wiredTiger.cache[\"maximum bytes configured\"]); print(\"isWritablePrimary: \" + db.hello().isWritablePrimary + \" (standalone, no replica set)\"); print(\"server time (UTC): \" + new Date().toISOString());"'
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 1.347 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : db version v7.0.45  [service 'mongo' in docker-compose.yml]
+================================================================================
+db.version(): 7.0.45
+featureCompatibilityVersion: 7.0
+storage engine: wiredTiger
+WiredTiger cache max (bytes): 536870912
+isWritablePrimary: true (standalone, no replica set)
+server time (UTC): 2026-11-07T22:16:29.850Z
+
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : M1 - mongo:7.0 image digest (exact image used)
+Captured at : 2026-11-07T23:16:21+01:00 (Africa/Lagos, WAT) | 2026-11-07T22:16:21Z (UTC)
+Command     : docker image inspect mongo:7.0 --format '{{index .RepoDigests 0}} | created {{.Created}}'
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 0.118 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+================================================================================
+mongo@sha256:8bb4442761a63a8dda452744082cdac9644b429807eb977b42324a63cef59ca4 | created 2026-10-26T23:26:05.462883861Z

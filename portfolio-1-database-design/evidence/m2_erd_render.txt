@@ -1,0 +1,53 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : M2 - Graphviz version
+Captured at : 2026-11-08T09:15:52+01:00 (Africa/Lagos, WAT) | 2026-11-08T08:15:52Z (UTC)
+Command     : 'C:/Program Files/Graphviz/bin/dot.exe' -V
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 0.024 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+================================================================================
+dot - graphviz version 16.1.0 (20260904.0139)
+
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : M2 - render Chen ERD to SVG
+Captured at : 2026-11-08T09:15:53+01:00 (Africa/Lagos, WAT) | 2026-11-08T08:15:53Z (UTC)
+Command     : 'C:/Program Files/Graphviz/bin/dot.exe' -Tsvg portfolio-1-database-design/erd/erd-chen.dot -o portfolio-1-database-design/erd/erd-chen.svg
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 0.110 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+================================================================================
+
+
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : M2 - render Chen ERD to PNG (110 dpi)
+Captured at : 2026-11-08T09:15:53+01:00 (Africa/Lagos, WAT) | 2026-11-08T08:15:53Z (UTC)
+Command     : 'C:/Program Files/Graphviz/bin/dot.exe' -Tpng -Gdpi=110 portfolio-1-database-design/erd/erd-chen.dot -o portfolio-1-database-design/erd/erd-chen.png
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 1.036 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+================================================================================
+
+
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : M2 - rendered output check (image size; shapes excluding legend and page background)
+Captured at : 2026-11-08T09:15:55+01:00 (Africa/Lagos, WAT) | 2026-11-08T08:15:55Z (UTC)
+Command     : python -c 'import re,struct,pathlib;e=pathlib.Path("portfolio-1-database-design/erd");svg=(e/"erd-chen.svg").read_text(encoding="utf-8");png=(e/"erd-chen.png").read_bytes();w,h=struct.unpack(">II",png[16:24]);n=[(t,s) for t,s in re.findall(r"<title>([^<]+)</title>\s*<(polygon|ellipse)",svg) if not t.startswith("lg_") and "&#45;" not in t and t!="OwoRail_ERD"];dbl=lambda k:sorted(t for t,_ in n if t in k);print(f"PNG {w} x {h} px");print("entities + relationships (polygons):",sum(s=="polygon" for _,s in n));print("attributes (ellipses):",sum(s=="ellipse" for _,s in n))'
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 0.085 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+================================================================================
+PNG 4109 x 3837 px
+entities + relationships (polygons): 22
+attributes (ellipses): 65

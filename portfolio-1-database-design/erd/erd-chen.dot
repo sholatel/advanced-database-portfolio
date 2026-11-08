@@ -1,0 +1,227 @@
+// OwoRail - conceptual ER diagram in Chen notation (P1, Stage 2 Conceptual Design)
+//
+// Render (Graphviz 16.x), from this folder:
+//   dot -Tsvg erd-chen.dot -o erd-chen.svg
+//   dot -Tpng -Gdpi=110 erd-chen.dot -o erd-chen.png
+// The layout engine is neato (set below) and every node has a fixed position
+// pos="x,y!" in inches, so the diagram renders identically every time.
+//
+// Notation
+//   entity                  box                 weak entity            box, double border
+//   relationship            diamond             identifying relation   diamond, double border
+//   attribute               ellipse             key attribute          underlined
+//   partial key (weak)      underlined italic   multi-valued           ellipse, double border
+//   derived attribute       dashed ellipse      composite              ellipse joined to ellipses
+//   total participation     double line         partial participation  single line
+//   cardinality (1, N, M)   label on each entity-relationship line
+
+graph OwoRail_ERD {
+  layout=neato
+  overlap=true
+  splines=false
+  outputorder=edgesfirst
+  bgcolor="white"
+  pad=0.5
+  fontname="Helvetica"
+  labelloc=t
+  fontsize=28
+  label=<<B>OwoRail: conceptual ER diagram (Chen notation)</B><BR/><FONT POINT-SIZE="16">P1 Stage 2 Conceptual Design. Money in kobo (BIGINT); timestamps in UTC. Full attribute list: requirements-and-business-rules.md, section 3.</FONT><BR/> >
+
+  node [pin=true, fontname="Helvetica", color="#333333", style=filled, fillcolor="white"]
+  edge [fontname="Helvetica-Bold", fontsize=15, fontcolor="#1F4E9A", color="#222222", penwidth=1.4]
+
+  // ------------------------------------------------------------------ entities
+  node [shape=box, fontsize=16, style="filled,bold", fillcolor="#E8F0FB", width=2.0, height=0.62]
+  KYC_TIER       [label=<<B>KYC_TIER</B>>,     pos="2,13!"]
+  KYC_PROFILE    [label=<<B>KYC_PROFILE</B>>,  pos="2,6!"]
+  CUSTOMER       [label=<<B>CUSTOMER</B>>,     pos="11,6!"]
+  WALLET         [label=<<B>WALLET</B>>,       pos="19.5,6!"]
+  MERCHANT       [label=<<B>MERCHANT</B>>,     pos="19.5,13!"]
+  FEE_RULE       [label=<<B>FEE_RULE</B>>,     pos="9,-3!"]
+  TRANSACTION    [label=<<B>TRANSACTION</B>>,  pos="19.5,-3!", width=2.2]
+  AUDIT_LOG      [label=<<B>AUDIT_LOG</B>>,    pos="29.5,-12!"]
+  // weak entities
+  LEDGER_ENTRY   [label=<<B>LEDGER_ENTRY</B>>, pos="29.5,-3!", peripheries=2, width=2.2]
+  STATUS_HISTORY [label=<<B>TRANSACTION_<BR/>STATUS_HISTORY</B>>, pos="10,-8!", peripheries=2, width=2.4, height=0.85]
+
+  // ------------------------------------------------------------- relationships
+  node [shape=diamond, fontsize=12, style="filled", fillcolor="#FFF4D6", width=1.9, height=0.95]
+  CLASSIFIED_AS [label=<<B>CLASSIFIED_AS</B>>, pos="2,9.5!", width=2.3]
+  HAS_KYC       [label=<<B>HAS_KYC</B>>,       pos="6.5,6!"]
+  OWNS          [label=<<B>OWNS</B>>,          pos="15,8.5!"]
+  SAVES_BENEF   [label=<<B>SAVES_<BR/>BENEFICIARY</B>>, pos="15,3.5!", width=2.3, height=1.1]
+  HOLDS         [label=<<B>HOLDS</B>>,         pos="19.5,9.5!"]
+  DEBITS        [label=<<B>DEBITS</B>>,        pos="17.3,1.5!"]
+  CREDITS       [label=<<B>CREDITS</B>>,       pos="21.7,1.5!"]
+  PRICED_BY     [label=<<B>PRICED_BY</B>>,     pos="14,-3!"]
+  POSTED_TO     [label=<<B>POSTED_TO</B>>,     pos="27.5,3!"]
+  REVERSES      [label=<<B>REVERSES</B>>,      pos="24,-8!"]
+  // identifying relationships
+  POSTS         [label=<<B>POSTS</B>>,         pos="25,-3!", peripheries=2]
+  HAS_STATUS    [label=<<B>HAS_STATUS</B>>,    pos="15,-8!", peripheries=2, width=2.1]
+
+  // ------------------------------------------------- relationship lines + cardinality
+  // double line = total participation
+  CUSTOMER      -- HAS_KYC        [label="1"]
+  HAS_KYC       -- KYC_PROFILE    [label="1", color="#222222:invis:#222222"]
+  KYC_PROFILE   -- CLASSIFIED_AS  [label="N", color="#222222:invis:#222222"]
+  CLASSIFIED_AS -- KYC_TIER       [label="1"]
+
+  CUSTOMER      -- OWNS           [label="1", color="#222222:invis:#222222"]
+  OWNS          -- WALLET         [label="N"]
+  MERCHANT      -- HOLDS          [label="1", color="#222222:invis:#222222"]
+  HOLDS         -- WALLET         [label="1"]
+  CUSTOMER      -- SAVES_BENEF    [label="M"]
+  SAVES_BENEF   -- WALLET         [label="N"]
+
+  WALLET        -- DEBITS         [label="1 (source)  "]
+  DEBITS        -- TRANSACTION    [label="N", color="#222222:invis:#222222"]
+  WALLET        -- CREDITS        [label="  1 (destination)"]
+  CREDITS       -- TRANSACTION    [label="N", color="#222222:invis:#222222"]
+  FEE_RULE      -- PRICED_BY      [label="1"]
+  PRICED_BY     -- TRANSACTION    [label="N"]
+
+  TRANSACTION   -- POSTS          [label="1"]
+  POSTS         -- LEDGER_ENTRY   [label="N", color="#222222:invis:#222222"]
+  WALLET        -- POSTED_TO      [label="1"]
+  POSTED_TO     -- LEDGER_ENTRY   [label="N", color="#222222:invis:#222222"]
+  TRANSACTION   -- HAS_STATUS     [label="1", color="#222222:invis:#222222"]
+  HAS_STATUS    -- STATUS_HISTORY [label="N", color="#222222:invis:#222222"]
+
+  // recursive (unary) relationship with role names
+  TRANSACTION:s -- REVERSES:w     [label="1 (original)      "]
+  TRANSACTION:e -- REVERSES:n     [label="       1 (reversing)"]
+
+  // ---------------------------------------------------------------- attributes
+  node [shape=ellipse, fontsize=12, style="filled", fillcolor="white", width=1.0, height=0.42]
+  edge [color="#777777", penwidth=1.0, label=""]
+
+  // CUSTOMER: composite address, multi-valued phone_number, derived age
+  cu_age   [label="age", style="filled,dashed",  pos="7.6,7.6!"]
+  cu_dob   [label="date_of_birth",               pos="8.6,8.7!"]
+  cu_id    [label=<<U>customer_id</U>>,           pos="10.6,9.1!"]
+  cu_name  [label="full_name",                   pos="12.6,9.2!"]
+  cu_stat  [label="status",                      pos="7.8,4.5!"]
+  cu_email [label="email",                       pos="9.2,3.5!"]
+  cu_phone [label="phone_number", peripheries=2, pos="12.8,3.1!"]
+  cu_addr  [label="address",                     pos="10.9,2.5!"]
+  cu_str   [label="street",                      pos="9.3,1.2!"]
+  cu_city  [label="city",                        pos="10.9,0.9!"]
+  cu_state [label="state",                       pos="12.5,1.2!"]
+  CUSTOMER -- {cu_age cu_dob cu_id cu_name cu_stat cu_email cu_phone cu_addr}
+  cu_addr  -- {cu_str cu_city cu_state}
+
+  // KYC_TIER
+  kt_lvl  [label=<<U>tier_level</U>>,      pos="-0.9,13.4!"]
+  kt_name [label="tier_name",              pos="-0.2,14.9!"]
+  kt_sgl  [label="single_txn_limit_kobo",  pos="2.2,15.7!"]
+  kt_day  [label="daily_limit_kobo",       pos="4.9,15.0!"]
+  kt_bal  [label="max_balance_kobo",       pos="5.4,13.3!"]
+  KYC_TIER -- {kt_lvl kt_name kt_sgl kt_day kt_bal}
+
+  // KYC_PROFILE
+  ky_id   [label=<<U>kyc_profile_id</U>>,  pos="-1.1,7.2!"]
+  ky_idn  [label="national_id_number",     pos="-1.6,5.6!"]
+  ky_idt  [label="id_type",                pos="-0.9,4.2!"]
+  ky_vst  [label="verification_status",    pos="1.7,3.5!"]
+  ky_vat  [label="verified_at",            pos="4.4,4.1!"]
+  KYC_PROFILE -- {ky_id ky_idn ky_idt ky_vst ky_vat}
+
+  // MERCHANT (billers are merchants with merchant_type = BILLER)
+  me_id   [label=<<U>merchant_id</U>>,     pos="16.6,13.5!"]
+  me_code [label="merchant_code",          pos="17.4,15.0!"]
+  me_name [label="business_name",          pos="19.5,15.7!"]
+  me_type [label="merchant_type",          pos="21.6,15.0!"]
+  me_cat  [label="category",               pos="22.4,13.5!"]
+  MERCHANT -- {me_id me_code me_name me_type me_cat}
+
+  // WALLET: derived ledger balance
+  wa_id   [label=<<U>wallet_id</U>>,       pos="21.4,8.4!"]
+  wa_stat [label="status",                 pos="23.2,9.2!"]
+  wa_no   [label="wallet_number",          pos="24.7,7.8!"]
+  wa_type [label="wallet_type",            pos="25.6,6.5!"]
+  wa_bal  [label="balance_kobo",           pos="24.9,5.2!"]
+  wa_lbal [label="ledger_balance_kobo", style="filled,dashed", pos="23.3,3.2!"]
+  WALLET -- {wa_id wa_stat wa_no wa_type wa_bal wa_lbal}
+
+  // SAVES_BENEFICIARY (attributes of the M:N relationship)
+  sb_nick [label="nickname",               pos="13.4,1.6!"]
+  sb_at   [label="saved_at",               pos="15.3,0.9!"]
+  SAVES_BENEF -- {sb_nick sb_at}
+
+  // TRANSACTION: derived total_debit_kobo
+  tx_ref  [label="transaction_ref",        pos="15.2,-0.4!"]
+  tx_id   [label=<<U>transaction_id</U>>,  pos="16.9,0.1!"]
+  tx_idem [label="idempotency_key",        pos="15.8,-1.8!"]
+  tx_type [label="transaction_type",       pos="19.5,-1.4!"]
+  tx_amt  [label="amount_kobo",            pos="22.3,-0.5!"]
+  tx_tot  [label="total_debit_kobo", style="filled,dashed", pos="24.3,-0.2!"]
+  tx_fee  [label="fee_kobo",               pos="23.5,-1.7!"]
+  tx_stat [label="status",                 pos="16.4,-4.4!"]
+  tx_chan [label="channel",                pos="18.1,-6.1!"]
+  tx_at   [label="created_at",             pos="19.9,-6.5!"]
+  TRANSACTION -- {tx_ref tx_id tx_idem tx_type tx_amt tx_tot tx_fee tx_stat tx_chan tx_at}
+
+  // FEE_RULE
+  fr_id   [label=<<U>fee_rule_id</U>>,     pos="7.4,-1.3!"]
+  fr_tt   [label="transaction_type",       pos="9.6,-0.9!"]
+  fr_flat [label="flat_fee_kobo",          pos="5.9,-2.4!"]
+  fr_bps  [label="percent_bps",            pos="5.8,-3.7!"]
+  fr_cap  [label="cap_kobo",               pos="7.4,-4.8!"]
+  fr_from [label="effective_from",         pos="9.9,-4.9!"]
+  FEE_RULE -- {fr_id fr_tt fr_flat fr_bps fr_cap fr_from}
+
+  // LEDGER_ENTRY (weak: identified by its TRANSACTION + line_no)
+  le_no   [label=<<U><I>line_no</I></U>>,  pos="31.8,-1.9!"]
+  le_dc   [label="entry_type",             pos="32.1,-3.5!"]
+  le_amt  [label="amount_kobo",            pos="30.6,-4.9!"]
+  LEDGER_ENTRY -- {le_no le_dc le_amt}
+
+  // TRANSACTION_STATUS_HISTORY (weak: identified by its TRANSACTION + seq_no)
+  sh_no   [label=<<U><I>seq_no</I></U>>,   pos="7.0,-7.2!"]
+  sh_st   [label="status",                 pos="9.4,-6.2!"]
+  sh_at   [label="changed_at",             pos="7.3,-9.3!"]
+  sh_rsn  [label="reason",                 pos="10.4,-10.0!"]
+  STATUS_HISTORY -- {sh_no sh_st sh_at sh_rsn}
+
+  // REVERSES (attributes of the recursive relationship)
+  rv_rsn  [label="reason",                 pos="22.6,-9.9!"]
+  rv_by   [label="requested_by",           pos="25.6,-9.9!"]
+  REVERSES -- {rv_rsn rv_by}
+
+  // AUDIT_LOG (no relationships: polymorphic target reference, append-only)
+  au_id   [label=<<U>audit_id</U>>,        pos="27.0,-11.1!"]
+  au_at   [label="occurred_at",            pos="26.8,-12.7!"]
+  au_act  [label="actor",                  pos="28.1,-14.0!"]
+  au_op   [label="action",                 pos="30.6,-14.1!"]
+  au_tgt  [label="target_type, target_id", pos="32.3,-12.8!"]
+  au_det  [label="details",                pos="31.8,-10.9!"]
+  AUDIT_LOG -- {au_id au_at au_act au_op au_tgt au_det}
+
+  // -------------------------------------------------------------------- legend
+  node [fontsize=12, width=1.6, height=0.45]
+  edge [color="#222222", penwidth=1.4]
+  lg_title [shape=plaintext, style="", fontsize=15, label=<<B>Notation (Chen)</B>>, pos="0.3,-9.0!"]
+  lg_ent   [shape=box, style="filled,bold", fillcolor="#E8F0FB", label="Entity",       pos="-0.9,-10.0!"]
+  lg_weak  [shape=box, style="filled,bold", fillcolor="#E8F0FB", peripheries=2, label="Weak entity *", pos="1.6,-10.0!"]
+  lg_rel   [shape=diamond, fillcolor="#FFF4D6", width=2.0, height=0.8, label="Relationship", pos="-0.9,-11.2!"]
+  lg_irel  [shape=diamond, fillcolor="#FFF4D6", width=2.0, height=0.8, peripheries=2, label="Identifying\nrelationship *", pos="1.6,-11.2!"]
+  lg_att   [shape=ellipse, label="Attribute",                  pos="-0.9,-12.4!"]
+  lg_key   [shape=ellipse, label=<<U>Key attribute</U>>,        pos="1.6,-12.4!"]
+  lg_pkey  [shape=ellipse, label=<<U><I>Partial key *</I></U>>, pos="-0.9,-13.3!"]
+  lg_mv    [shape=ellipse, peripheries=2, label="Multi-valued", pos="1.6,-13.3!"]
+  lg_der   [shape=ellipse, style="filled,dashed", label="Derived", pos="-0.9,-14.2!"]
+  lg_comp  [shape=ellipse, label="Composite",                  pos="1.6,-14.2!"]
+  lg_c1    [shape=ellipse, label="component", width=1.1, height=0.38, pos="3.6,-14.2!"]
+  lg_comp -- lg_c1 [color="#777777", penwidth=1.0]
+  lg_t1    [shape=point, width=0.04, pos="-1.6,-15.1!"]
+  lg_t2    [shape=point, width=0.04, pos="-0.2,-15.1!"]
+  lg_tl    [shape=plaintext, style="", label="Total participation (every instance takes part)", pos="2.6,-15.1!"]
+  lg_t1 -- lg_t2 [color="#222222:invis:#222222"]
+  lg_p1    [shape=point, width=0.04, pos="-1.6,-15.7!"]
+  lg_p2    [shape=point, width=0.04, pos="-0.2,-15.7!"]
+  lg_pl    [shape=plaintext, style="", label="Partial participation", pos="1.3,-15.7!"]
+  lg_p1 -- lg_p2
+  lg_note  [shape=plaintext, style="", fontsize=12, pos="1.5,-16.6!",
+            label=<1, N, M on each line = cardinality ratio<BR/>* Supplementary notation (Elmasri &amp; Navathe, 2016)>]
+}

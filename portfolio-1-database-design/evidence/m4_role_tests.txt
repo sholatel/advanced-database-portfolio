@@ -1,0 +1,82 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Role and privilege tests (least privilege)
+Captured at : 2026-11-10T21:47:59+01:00 (Africa/Lagos, WAT) | 2026-11-10T20:47:59Z (UTC)
+Command     : docker compose exec -T postgres psql -U postgres -d oworail -X -v ON_ERROR_STOP=1 -f /workspace/portfolio-1-database-design/sql/tests/role_tests.sql
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 0.613 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : postgres (PostgreSQL) 16.15 (Debian 16.15-1.pgdg13+2)  [service 'postgres' in docker-compose.yml]
+================================================================================
+SET
+SET
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE TABLE
+INSERT 0 41
+UPDATE 14
+UPDATE 27
+SELECT 41
+ #  |    area    |                  label                   |     expected      |      actual       | result 
+----+------------+------------------------------------------+-------------------+-------------------+--------
+  1 | app        | read transactions                        | NO ERROR          | NO ERROR          | PASS
+  2 | app        | post a transfer through post_transaction | NO ERROR          | NO ERROR          | PASS
+  3 | app        | onboard a customer                       | NO ERROR          | NO ERROR          | PASS
+  4 | app        | save a beneficiary                       | NO ERROR          | NO ERROR          | PASS
+  5 | app        | insert a ledger line directly            | permission denied | permission denied | PASS
+  6 | app        | change a wallet balance directly         | permission denied | permission denied | PASS
+  7 | app        | change a transaction status directly     | permission denied | permission denied | PASS
+  8 | app        | read KYC identity data                   | permission denied | permission denied | PASS
+  9 | app        | read the audit log                       | permission denied | permission denied | PASS
+ 10 | app        | verify KYC (compliance only)             | permission denied | permission denied | PASS
+ 11 | app        | create a table (no DDL)                  | permission denied | permission denied | PASS
+ 12 | support    | find a customer by phone                 | NO ERROR          | NO ERROR          | PASS
+ 13 | support    | view a wallet statement                  | NO ERROR          | NO ERROR          | PASS
+ 14 | support    | view balances through v_wallet_balance   | NO ERROR          | NO ERROR          | PASS
+ 15 | support    | read KYC identity data                   | permission denied | permission denied | PASS
+ 16 | support    | read the audit log                       | permission denied | permission denied | PASS
+ 17 | support    | edit a customer's email                  | permission denied | permission denied | PASS
+ 18 | support    | post a transaction                       | permission denied | permission denied | PASS
+ 19 | support    | reverse a transaction                    | permission denied | permission denied | PASS
+ 20 | compliance | read KYC profiles                        | NO ERROR          | NO ERROR          | PASS
+ 21 | compliance | verify a KYC profile                     | NO ERROR          | NO ERROR          | PASS
+ 22 | compliance | edit a KYC profile directly              | permission denied | permission denied | PASS
+ 23 | compliance | read transactions                        | permission denied | permission denied | PASS
+ 24 | compliance | read the audit log                       | permission denied | permission denied | PASS
+ 25 | analyst    | velocity check over transactions         | NO ERROR          | NO ERROR          | PASS
+ 26 | analyst    | reconcile balances against the ledger    | NO ERROR          | NO ERROR          | PASS
+ 27 | analyst    | read customer personal data              | permission denied | permission denied | PASS
+ 28 | analyst    | read customer data through v_customer    | permission denied | permission denied | PASS
+ 29 | analyst    | read KYC identity data                   | permission denied | permission denied | PASS
+ 30 | analyst    | change a fee rule                        | permission denied | permission denied | PASS
+ 31 | auditor    | read the audit log                       | NO ERROR          | NO ERROR          | PASS
+ 32 | auditor    | read KYC profiles                        | NO ERROR          | NO ERROR          | PASS
+ 33 | auditor    | read the ledger                          | NO ERROR          | NO ERROR          | PASS
+ 34 | auditor    | add an audit record                      | permission denied | permission denied | PASS
+ 35 | auditor    | delete audit records                     | permission denied | permission denied | PASS
+ 36 | auditor    | change a transaction                     | permission denied | permission denied | PASS
+ 37 | auditor    | post a transaction                       | permission denied | permission denied | PASS
+ 38 | all roles  | oworail_app updates the ledger           | permission denied | permission denied | PASS
+ 39 | all roles  | oworail_support updates the ledger       | permission denied | permission denied | PASS
+ 40 | all roles  | oworail_analyst updates the ledger       | permission denied | permission denied | PASS
+ 41 | all roles  | oworail_auditor updates the ledger       | permission denied | permission denied | PASS
+
+ tests | passed | failed 
+-------+--------+--------
+    41 |     41 |      0
+
+DO
+      function       |        executable_by         
+---------------------+------------------------------
+ fee_for             | oworail_analyst, oworail_app
+ onboard_customer    | oworail_app
+ onboard_merchant    | oworail_app
+ post_transaction    | oworail_app
+ reverse_transaction | oworail_app
+ review_kyc          | oworail_compliance
+ submit_kyc          | oworail_app

@@ -77,3 +77,30 @@ This log records, milestone by milestone, how I (Yusuf O. Sholadoye) used an AI 
 **AI assistance used:** drafted `schema.md` (mapping rules, keys, column and constraint tables) and `normalisation.md` (sample report, functional dependencies, UNF to BCNF steps, redundancy justification) to my specification.
 
 ---
+
+## M4: Physical design: PostgreSQL implementation and tests (10 Nov 2026)
+
+**My decisions:** the implementation as plain, re-runnable SQL scripts in a dedicated `oworail` schema; one database role per user group from the requirements, with least privilege; tests that switch roles with `SET ROLE` instead of creating login accounts; a small fixed seed that reproduces the normalisation sample, with the large volume dataset kept for Portfolio 2; the standard evidence format for every test output.
+
+**Design decisions (approved at review):**
+- The posting, reversal, onboarding and KYC functions are `SECURITY DEFINER` and owned by a separate `oworail_owner` role. They are the only way the application can change money; it has no direct write access to wallets, transactions or the ledger.
+- Five roles instead of the three first planned: compliance and analyst roles were added so that every user group in the requirements has a matching role.
+- The balanced-ledger rule is a deferred constraint trigger on both `ledger_entry` and `transaction`, so a SUCCESSFUL transaction without lines is caught as well as an unbalanced one.
+- Business refusals (insufficient funds, KYC limits, frozen wallets) are recorded as FAILED transactions with a reason; invalid requests (wrong wallet type, unknown wallet) raise an error and record nothing.
+- A customer whose KYC is not yet verified is held to Tier 1 limits.
+- A reversal is refused if the receiver no longer holds the funds.
+- The seed includes an expired fee rule, to show that past transactions keep the fee they were charged.
+- Views use `security_invoker`, so they can't be used to bypass table privileges.
+- Tests identify each failure by the constraint name PostgreSQL reports and run in a subtransaction that is always rolled back; a catalogue check compares the built database with schema.md.
+
+**AI assistance used:** generated the SQL build scripts, the seed, the four test scripts and their harness, the catalogue-check and build-and-test Python scripts, and drafted the implementation and testing sections of the Portfolio 1 README, to my specification.
+
+**How it was verified:**
+- The full build ran twice in a row without error (`evidence/m4_build.txt`).
+- Constraint tests: 120 of 120 passed. Each of the 94 constraints rejected a bad row with its own name, and an unbalanced posting was rejected at a real COMMIT, leaving no rows behind. One test first failed because a wallet with an unknown type breaks two CHECK constraints and PostgreSQL reports the other one first; the test was corrected to record that, and a second test shows the wallet-type check on its own.
+- Procedure tests 40 of 40, role tests 41 of 41, consistency checks 13 of 13 with zero violations, catalogue check 9 of 9.
+- The FK-index part of the catalogue check was itself tested: with one index dropped (in a rolled-back transaction) it reported the uncovered foreign key.
+- The balances, fees, ledger lines and statuses of the 2 November sample matched normalisation.md, and the balances after all tests were unchanged.
+- No `.env` secret appears in any evidence file; all new files have LF line endings.
+
+---

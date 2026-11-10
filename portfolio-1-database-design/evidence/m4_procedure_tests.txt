@@ -1,0 +1,73 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Procedure tests: fees, limits, idempotency, reversals, onboarding, KYC
+Captured at : 2026-11-10T21:47:57+01:00 (Africa/Lagos, WAT) | 2026-11-10T20:47:57Z (UTC)
+Command     : docker compose exec -T postgres psql -U postgres -d oworail -X -v ON_ERROR_STOP=1 -f /workspace/portfolio-1-database-design/sql/tests/procedure_tests.sql
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 0.602 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : postgres (PostgreSQL) 16.15 (Debian 16.15-1.pgdg13+2)  [service 'postgres' in docker-compose.yml]
+================================================================================
+SET
+SET
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE TABLE
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 40
+SELECT 40
+ #  |        area         |                                 label                                  |                                         expected                                         |                                                        actual                                                        | result 
+----+---------------------+------------------------------------------------------------------------+------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+--------
+  1 | fee_for             | transfer of N5,000: top of band 1, flat N10                            | 2/1000                                                                                   | 2/1000                                                                                                               | PASS
+  2 | fee_for             | transfer of N5,000.01: band 2, flat N25                                | 3/2500                                                                                   | 3/2500                                                                                                               | PASS
+  3 | fee_for             | transfer of N100,000: band 3, flat N50                                 | 4/5000                                                                                   | 4/5000                                                                                                               | PASS
+  4 | fee_for             | same transfer in June 2026 uses the old rule 1                         | 1/500                                                                                    | 1/500                                                                                                                | PASS
+  5 | fee_for             | rule 2 starts exactly at 1 July 00:00 UTC                              | 2/1000                                                                                   | 2/1000                                                                                                               | PASS
+  6 | fee_for             | bill of N12,000: 0.5 %                                                 | 5/6000                                                                                   | 5/6000                                                                                                               | PASS
+  7 | fee_for             | bill of N50,000: 0.5 % = N250, capped at N100                          | 5/10000                                                                                  | 5/10000                                                                                                              | PASS
+  8 | fee_for             | bill of 1999 kobo: 9.995 kobo rounds down                              | 5/9                                                                                      | 5/9                                                                                                                  | PASS
+  9 | fee_for             | merchant payment: no rule, free                                        | none/0                                                                                   | none/0                                                                                                               | PASS
+ 10 | post_transaction    | transfer moves amount + fee: sender / receiver / FEES                  | 1649000 / 150000 / 17000                                                                 | 1649000 / 150000 / 17000                                                                                             | PASS
+ 11 | post_transaction    | retry with the same idempotency key posts once                         | 1 transaction, sender 1649000                                                            | 1 transaction, sender 1649000                                                                                        | PASS
+ 12 | post_transaction    | retry of a seeded request returns the original transaction             | true                                                                                     | true                                                                                                                 | PASS
+ 13 | post_transaction    | generated reference follows the OWR format                             | true                                                                                     | true                                                                                                                 | PASS
+ 14 | post_transaction    | insufficient funds                                                     | FAILED | insufficient funds | 0 lines                                                    | FAILED | insufficient funds | 0 lines                                                                                | PASS
+ 15 | post_transaction    | Tier 1 single-transaction limit (N50,000)                              | FAILED | single transaction limit exceeded | 0 lines                                     | FAILED | single transaction limit exceeded | 0 lines                                                                 | PASS
+ 16 | post_transaction    | Tier 2 daily limit (N200,000) on the third transfer of the day         | FAILED | daily limit exceeded | 0 lines                                                  | FAILED | daily limit exceeded | 0 lines                                                                              | PASS
+ 17 | post_transaction    | the daily limit resets the next UTC day                                | SUCCESSFUL | - | 3 lines                                                                 | SUCCESSFUL | - | 3 lines                                                                                             | PASS
+ 18 | post_transaction    | Tier 1 receiver maximum balance (N300,000)                             | FAILED | receiver maximum balance exceeded | 0 lines                                     | FAILED | receiver maximum balance exceeded | 0 lines                                                                 | PASS
+ 19 | post_transaction    | frozen sender                                                          | FAILED | source wallet is FROZEN | 0 lines                                               | FAILED | source wallet is FROZEN | 0 lines                                                                           | PASS
+ 20 | post_transaction    | unverified KYC is held to Tier 1 limits                                | FAILED | single transaction limit exceeded | 0 lines                                     | FAILED | single transaction limit exceeded | 0 lines                                                                 | PASS
+ 21 | post_transaction    | merchant payment to a biller                                           | error P0001: MERCHANT_PAYMENT from wallet 3000000001%not allowed (BR-10)                 | error P0001: MERCHANT_PAYMENT from wallet 3000000001 (CUSTOMER) to wallet 3000000101 (BILLER) is not allowed (BR-10) | PASS
+ 22 | post_transaction    | bill payment to an ordinary merchant                                   | error P0001: BILL_PAYMENT from wallet 3000000001%not allowed (BR-10)                     | error P0001: BILL_PAYMENT from wallet 3000000001 (CUSTOMER) to wallet 3000000042 (MERCHANT) is not allowed (BR-10)   | PASS
+ 23 | post_transaction    | transfer out of a merchant wallet                                      | error P0001: TRANSFER from wallet 3000000042%not allowed (BR-10)                         | error P0001: TRANSFER from wallet 3000000042 (MERCHANT) to wallet 3000000001 (CUSTOMER) is not allowed (BR-10)       | PASS
+ 24 | post_transaction    | funding from a wallet other than SETTLEMENT                            | error P0001: WALLET_FUNDING from wallet 9000000001%not allowed (BR-10)                   | error P0001: WALLET_FUNDING from wallet 9000000001 (SYSTEM) to wallet 3000000001 (CUSTOMER) is not allowed (BR-10)   | PASS
+ 25 | post_transaction    | unknown destination wallet                                             | error P0001: unknown destination wallet 3999999999                                       | error P0001: unknown destination wallet 3999999999                                                                   | PASS
+ 26 | post_transaction    | reversal through post_transaction                                      | error P0001: post_transaction cannot post REVERSAL%                                      | error P0001: post_transaction cannot post REVERSAL; reversals use reverse_transaction                                | PASS
+ 27 | reverse_transaction | reversing a merchant payment: original / buyer / merchant / audit rows | REVERSED / 2000000 / 0 / 2                                                               | REVERSED / 2000000 / 0 / 2                                                                                           | PASS
+ 28 | reverse_transaction | retrying a reversal returns the existing one                           | true                                                                                     | true                                                                                                                 | PASS
+ 29 | reverse_transaction | a FAILED transaction cannot be reversed                                | error P0001: only a SUCCESSFUL transaction can be reversed; OWR000000000103 is FAILED%   | error P0001: only a SUCCESSFUL transaction can be reversed; OWR000000000103 is FAILED (BR-16)                        | PASS
+ 30 | reverse_transaction | a transaction is reversed at most once                                 | error P0001: only a SUCCESSFUL transaction can be reversed; OWR000000000101 is REVERSED% | error P0001: only a SUCCESSFUL transaction can be reversed; OWR000000000101 is REVERSED (BR-16)                      | PASS
+ 31 | reverse_transaction | a reversal cannot itself be reversed                                   | error P0001: transaction OWR000000000104 is itself a reversal%                           | error P0001: transaction OWR000000000104 is itself a reversal and cannot be reversed                                 | PASS
+ 32 | reverse_transaction | receiver has already spent the money                                   | error P0001: cannot reverse OWR800000000001: wallet 3000000002 no longer holds the funds | error P0001: cannot reverse OWR800000000001: wallet 3000000002 no longer holds the funds                             | PASS
+ 33 | onboarding          | customer created with phones and wallet; email stored in lower case    | mixed.case@example.com / 2 phones / 1 wallet                                             | mixed.case@example.com / 2 phones / 1 wallet                                                                         | PASS
+ 34 | onboarding          | no phone number                                                        | error P0001: a customer needs at least one phone number (BR-02)                          | error P0001: a customer needs at least one phone number (BR-02)                                                      | PASS
+ 35 | onboarding          | bad wallet number rolls back the customer and phones too               | 0 customers, 0 phones                                                                    | 0 customers, 0 phones                                                                                                | PASS
+ 36 | onboarding          | merchant created with its single wallet                                | MERCHANT wallet 3000000999                                                               | MERCHANT wallet 3000000999                                                                                           | PASS
+ 37 | kyc                 | verification sets tier, reviewer and an audit record                   | VERIFIED / tier 2 / compliance.test / KYC_VERIFIED by compliance.test                    | VERIFIED / tier 2 / compliance.test / KYC_VERIFIED by compliance.test                                                | PASS
+ 38 | kyc                 | rejection keeps the current tier                                       | REJECTED / tier 1                                                                        | REJECTED / tier 1                                                                                                    | PASS
+ 39 | kyc                 | unknown decision                                                       | error P0001: a KYC decision is VERIFIED or REJECTED, not MAYBE                           | error P0001: a KYC decision is VERIFIED or REJECTED, not MAYBE                                                       | PASS
+ 40 | kyc                 | audit log keeps no national ID number                                  | 0                                                                                        | 0                                                                                                                    | PASS
+
+ tests | passed | failed 
+-------+--------+--------
+    40 |     40 |      0
+
+DO

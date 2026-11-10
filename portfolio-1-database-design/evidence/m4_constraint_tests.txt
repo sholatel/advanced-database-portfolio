@@ -1,0 +1,162 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Constraint, trigger and ON DELETE tests
+Captured at : 2026-11-10T21:47:55+01:00 (Africa/Lagos, WAT) | 2026-11-10T20:47:55Z (UTC)
+Command     : docker compose exec -T postgres psql -U postgres -d oworail -X -v ON_ERROR_STOP=1 -f /workspace/portfolio-1-database-design/sql/tests/constraint_tests.sql
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 0.744 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : postgres (PostgreSQL) 16.15 (Debian 16.15-1.pgdg13+2)  [service 'postgres' in docker-compose.yml]
+================================================================================
+SET
+SET
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE TABLE
+INSERT 0 120
+SELECT 120
+  #  |            area            |                             label                             |                  expected                  |                                  actual                                  | result 
+-----+----------------------------+---------------------------------------------------------------+--------------------------------------------+--------------------------------------------------------------------------+--------
+   1 | customer                   | blank full name                                               | chk_customer_full_name_not_blank           | chk_customer_full_name_not_blank                                         | PASS
+   2 | customer                   | email with capitals                                           | chk_customer_email_format                  | chk_customer_email_format                                                | PASS
+   3 | customer                   | duplicate email                                               | uq_customer_email                          | uq_customer_email                                                        | PASS
+   4 | customer                   | unknown status                                                | chk_customer_status                        | chk_customer_status                                                      | PASS
+   5 | customer                   | under 18 at onboarding                                        | chk_customer_adult_at_onboarding           | chk_customer_adult_at_onboarding                                         | PASS
+   6 | customer                   | missing email                                                 | not null: customer.email                   | not null: customer.email                                                 | PASS
+   7 | customer                   | application supplies its own key                              | error 428C9%                               | error 428C9: cannot insert a non-DEFAULT value into column "customer_id" | PASS
+   8 | customer                   | valid customer is accepted                                    | NO ERROR                                   | NO ERROR                                                                 | PASS
+   9 | customer_phone             | number already belongs to another customer                    | pk_customer_phone                          | pk_customer_phone                                                        | PASS
+  10 | customer_phone             | not a Nigerian mobile number in E.164                         | chk_customer_phone_format                  | chk_customer_phone_format                                                | PASS
+  11 | customer_phone             | unknown customer                                              | fk_customer_phone_customer                 | fk_customer_phone_customer                                               | PASS
+  12 | kyc_tier                   | duplicate tier level                                          | pk_kyc_tier                                | pk_kyc_tier                                                              | PASS
+  13 | kyc_tier                   | duplicate tier name                                           | uq_kyc_tier_name                           | uq_kyc_tier_name                                                         | PASS
+  14 | kyc_tier                   | tier 4 does not exist                                         | chk_kyc_tier_level                         | chk_kyc_tier_level                                                       | PASS
+  15 | kyc_tier                   | zero single-transaction limit                                 | chk_kyc_tier_single_limit_positive         | chk_kyc_tier_single_limit_positive                                       | PASS
+  16 | kyc_tier                   | daily limit below single limit                                | chk_kyc_tier_daily_ge_single               | chk_kyc_tier_daily_ge_single                                             | PASS
+  17 | kyc_tier                   | zero maximum balance                                          | chk_kyc_tier_max_balance_positive          | chk_kyc_tier_max_balance_positive                                        | PASS
+  18 | kyc_profile                | second profile for a customer                                 | uq_kyc_profile_customer                    | uq_kyc_profile_customer                                                  | PASS
+  19 | kyc_profile                | BVN already registered                                        | uq_kyc_profile_national_id                 | uq_kyc_profile_national_id                                               | PASS
+  20 | kyc_profile                | same digits as a BVN but as a NIN (separate scheme)           | NO ERROR                                   | NO ERROR                                                                 | PASS
+  21 | kyc_profile                | unknown customer                                              | fk_kyc_profile_customer                    | fk_kyc_profile_customer                                                  | PASS
+  22 | kyc_profile                | unknown tier                                                  | fk_kyc_profile_tier                        | fk_kyc_profile_tier                                                      | PASS
+  23 | kyc_profile                | unsupported ID type                                           | chk_kyc_profile_id_type                    | chk_kyc_profile_id_type                                                  | PASS
+  24 | kyc_profile                | real-looking (non-synthetic) BVN                              | chk_kyc_profile_synthetic_id               | chk_kyc_profile_synthetic_id                                             | PASS
+  25 | kyc_profile                | unknown verification status                                   | chk_kyc_profile_verification_status        | chk_kyc_profile_verification_status                                      | PASS
+  26 | kyc_profile                | review time without reviewer                                  | chk_kyc_profile_reviewer_pair              | chk_kyc_profile_reviewer_pair                                            | PASS
+  27 | kyc_profile                | VERIFIED with no review recorded                              | chk_kyc_profile_decision_recorded          | chk_kyc_profile_decision_recorded                                        | PASS
+  28 | merchant                   | duplicate merchant code                                       | uq_merchant_code                           | uq_merchant_code                                                         | PASS
+  29 | merchant                   | badly formed merchant code                                    | chk_merchant_code_format                   | chk_merchant_code_format                                                 | PASS
+  30 | merchant                   | blank business name                                           | chk_merchant_business_name_not_blank       | chk_merchant_business_name_not_blank                                     | PASS
+  31 | merchant                   | unknown merchant type                                         | chk_merchant_type                          | chk_merchant_type                                                        | PASS
+  32 | merchant                   | unknown category                                              | chk_merchant_category                      | chk_merchant_category                                                    | PASS
+  33 | merchant                   | CLOSED is not a merchant status                               | chk_merchant_status                        | chk_merchant_status                                                      | PASS
+  34 | wallet                     | duplicate wallet number                                       | uq_wallet_number                           | uq_wallet_number                                                         | PASS
+  35 | wallet                     | second wallet for a merchant                                  | uq_wallet_merchant                         | uq_wallet_merchant                                                       | PASS
+  36 | wallet                     | second FEES wallet                                            | uq_wallet_system_purpose                   | uq_wallet_system_purpose                                                 | PASS
+  37 | wallet                     | second wallet for a customer (allowed)                        | NO ERROR                                   | NO ERROR                                                                 | PASS
+  38 | wallet                     | unknown customer                                              | fk_wallet_customer                         | fk_wallet_customer                                                       | PASS
+  39 | wallet                     | unknown merchant                                              | fk_wallet_merchant                         | fk_wallet_merchant                                                       | PASS
+  40 | wallet                     | wallet number not 10 digits                                   | chk_wallet_number_format                   | chk_wallet_number_format                                                 | PASS
+  41 | wallet                     | unknown wallet type (arc check reported first)                | chk_wallet_owner_matches_type              | chk_wallet_owner_matches_type                                            | PASS
+  42 | wallet                     | unknown wallet type, arc check set aside                      | chk_wallet_type                            | chk_wallet_type                                                          | PASS
+  43 | wallet                     | unknown system purpose                                        | chk_wallet_system_purpose                  | chk_wallet_system_purpose                                                | PASS
+  44 | wallet                     | foreign currency                                              | chk_wallet_currency                        | chk_wallet_currency                                                      | PASS
+  45 | wallet                     | customer balance below zero                                   | chk_wallet_balance_non_negative            | chk_wallet_balance_non_negative                                          | PASS
+  46 | wallet                     | system balance below zero (allowed)                           | NO ERROR                                   | NO ERROR                                                                 | PASS
+  47 | wallet                     | unknown wallet status                                         | chk_wallet_status                          | chk_wallet_status                                                        | PASS
+  48 | wallet                     | CUSTOMER wallet with no customer                              | chk_wallet_owner_matches_type              | chk_wallet_owner_matches_type                                            | PASS
+  49 | wallet                     | SYSTEM wallet that also names a customer                      | chk_wallet_owner_matches_type              | chk_wallet_owner_matches_type                                            | PASS
+  50 | saved_beneficiary          | same wallet saved twice                                       | pk_saved_beneficiary                       | pk_saved_beneficiary                                                     | PASS
+  51 | saved_beneficiary          | unknown customer                                              | fk_saved_beneficiary_customer              | fk_saved_beneficiary_customer                                            | PASS
+  52 | saved_beneficiary          | unknown wallet                                                | fk_saved_beneficiary_wallet                | fk_saved_beneficiary_wallet                                              | PASS
+  53 | saved_beneficiary          | nickname longer than 40 characters                            | chk_saved_beneficiary_nickname_length      | chk_saved_beneficiary_nickname_length                                    | PASS
+  54 | fee_rule                   | fee rule for reversals                                        | chk_fee_rule_transaction_type              | chk_fee_rule_transaction_type                                            | PASS
+  55 | fee_rule                   | band starting at zero                                         | chk_fee_rule_min_positive                  | chk_fee_rule_min_positive                                                | PASS
+  56 | fee_rule                   | band maximum below minimum                                    | chk_fee_rule_band                          | chk_fee_rule_band                                                        | PASS
+  57 | fee_rule                   | negative flat fee                                             | chk_fee_rule_flat_non_negative             | chk_fee_rule_flat_non_negative                                           | PASS
+  58 | fee_rule                   | percentage over 100 %                                         | chk_fee_rule_percent_bps                   | chk_fee_rule_percent_bps                                                 | PASS
+  59 | fee_rule                   | cap below the flat fee                                        | chk_fee_rule_cap                           | chk_fee_rule_cap                                                         | PASS
+  60 | fee_rule                   | period ends before it starts                                  | chk_fee_rule_period                        | chk_fee_rule_period                                                      | PASS
+  61 | fee_rule                   | new transfer band overlapping current rules                   | excl_fee_rule_no_overlap                   | excl_fee_rule_no_overlap                                                 | PASS
+  62 | fee_rule                   | rule 2 closed and replaced from 2027 (no overlap)             | NO ERROR                                   | NO ERROR                                                                 | PASS
+  63 | transaction                | duplicate transaction reference                               | uq_transaction_ref                         | uq_transaction_ref                                                       | PASS
+  64 | transaction                | duplicate idempotency key (retried request)                   | uq_transaction_idempotency_key             | uq_transaction_idempotency_key                                           | PASS
+  65 | transaction                | unknown source wallet                                         | fk_transaction_source_wallet               | fk_transaction_source_wallet                                             | PASS
+  66 | transaction                | unknown destination wallet                                    | fk_transaction_destination_wallet          | fk_transaction_destination_wallet                                        | PASS
+  67 | transaction                | unknown fee rule                                              | fk_transaction_fee_rule                    | fk_transaction_fee_rule                                                  | PASS
+  68 | transaction                | badly formed reference                                        | chk_transaction_ref_format                 | chk_transaction_ref_format                                               | PASS
+  69 | transaction                | unknown transaction type                                      | chk_transaction_type                       | chk_transaction_type                                                     | PASS
+  70 | transaction                | zero amount                                                   | chk_transaction_amount_positive            | chk_transaction_amount_positive                                          | PASS
+  71 | transaction                | negative fee                                                  | chk_transaction_fee_non_negative           | chk_transaction_fee_non_negative                                         | PASS
+  72 | transaction                | unknown status                                                | chk_transaction_status                     | chk_transaction_status                                                   | PASS
+  73 | transaction                | unknown channel                                               | chk_transaction_channel                    | chk_transaction_channel                                                  | PASS
+  74 | transaction                | narration over 100 characters                                 | chk_transaction_narration_length           | chk_transaction_narration_length                                         | PASS
+  75 | transaction                | sending to the same wallet                                    | chk_transaction_distinct_wallets           | chk_transaction_distinct_wallets                                         | PASS
+  76 | transaction                | bill payment without bill reference                           | chk_transaction_bill_reference             | chk_transaction_bill_reference                                           | PASS
+  77 | transaction                | transfer carrying a bill reference                            | chk_transaction_bill_reference             | chk_transaction_bill_reference                                           | PASS
+  78 | transaction                | fee charged without a fee rule                                | chk_transaction_fee_has_rule               | chk_transaction_fee_has_rule                                             | PASS
+  79 | transaction                | reversal charged a fee                                        | chk_transaction_reversal_no_fee            | chk_transaction_reversal_no_fee                                          | PASS
+  80 | transaction                | missing channel                                               | not null: transaction.channel              | not null: transaction.channel                                            | PASS
+  81 | ledger_entry               | duplicate line number                                         | pk_ledger_entry                            | pk_ledger_entry                                                          | PASS
+  82 | ledger_entry               | unknown transaction                                           | fk_ledger_entry_transaction                | fk_ledger_entry_transaction                                              | PASS
+  83 | ledger_entry               | unknown wallet                                                | fk_ledger_entry_wallet                     | fk_ledger_entry_wallet                                                   | PASS
+  84 | ledger_entry               | line number zero                                              | chk_ledger_entry_line_no                   | chk_ledger_entry_line_no                                                 | PASS
+  85 | ledger_entry               | entry type other than DEBIT/CREDIT                            | chk_ledger_entry_type                      | chk_ledger_entry_type                                                    | PASS
+  86 | ledger_entry               | negative amount                                               | chk_ledger_entry_amount_positive           | chk_ledger_entry_amount_positive                                         | PASS
+  87 | transaction_status_history | duplicate sequence number                                     | pk_transaction_status_history              | pk_transaction_status_history                                            | PASS
+  88 | transaction_status_history | unknown transaction                                           | fk_transaction_status_history_transaction  | fk_transaction_status_history_transaction                                | PASS
+  89 | transaction_status_history | sequence number zero                                          | chk_transaction_status_history_seq_no      | chk_transaction_status_history_seq_no                                    | PASS
+  90 | transaction_status_history | unknown status                                                | chk_transaction_status_history_status      | chk_transaction_status_history_status                                    | PASS
+  91 | reversal                   | transaction reversed a second time                            | pk_reversal                                | pk_reversal                                                              | PASS
+  92 | reversal                   | one reversal used for two originals                           | uq_reversal_reversal_transaction           | uq_reversal_reversal_transaction                                         | PASS
+  93 | reversal                   | unknown original transaction                                  | fk_reversal_original_transaction           | fk_reversal_original_transaction                                         | PASS
+  94 | reversal                   | unknown reversal transaction                                  | fk_reversal_reversal_transaction           | fk_reversal_reversal_transaction                                         | PASS
+  95 | reversal                   | blank reason                                                  | chk_reversal_reason_not_blank              | chk_reversal_reason_not_blank                                            | PASS
+  96 | reversal                   | transaction reversing itself                                  | chk_reversal_not_self                      | chk_reversal_not_self                                                    | PASS
+  97 | audit_log                  | action not in UPPER_SNAKE_CASE                                | chk_audit_log_action_format                | chk_audit_log_action_format                                              | PASS
+  98 | audit_log                  | unknown target type                                           | chk_audit_log_target_type                  | chk_audit_log_target_type                                                | PASS
+  99 | audit_log                  | valid event records the database role as actor                | postgres                                   | postgres                                                                 | PASS
+ 100 | ledger trigger             | extra line makes a posted transaction unbalanced              | trg_ledger_entry_balanced                  | trg_ledger_entry_balanced                                                | PASS
+ 101 | ledger trigger             | ledger lines on a FAILED transaction                          | trg_ledger_entry_balanced                  | trg_ledger_entry_balanced                                                | PASS
+ 102 | ledger trigger             | SUCCESSFUL transaction with no ledger lines                   | trg_transaction_balanced                   | trg_transaction_balanced                                                 | PASS
+ 103 | ledger trigger             | FAILED transaction flipped to SUCCESSFUL without lines        | trg_transaction_balanced                   | trg_transaction_balanced                                                 | PASS
+ 104 | ledger trigger             | balanced two-line posting is accepted                         | NO ERROR                                   | NO ERROR                                                                 | PASS
+ 105 | append-only                | edit a ledger amount                                          | trg_ledger_entry_append_only               | trg_ledger_entry_append_only                                             | PASS
+ 106 | append-only                | delete ledger lines                                           | trg_ledger_entry_append_only               | trg_ledger_entry_append_only                                             | PASS
+ 107 | append-only                | truncate the ledger                                           | trg_ledger_entry_no_truncate               | trg_ledger_entry_no_truncate                                             | PASS
+ 108 | append-only                | rewrite a status-history reason                               | trg_transaction_status_history_append_only | trg_transaction_status_history_append_only                               | PASS
+ 109 | append-only                | delete status history                                         | trg_transaction_status_history_append_only | trg_transaction_status_history_append_only                               | PASS
+ 110 | append-only                | truncate status history                                       | trg_transaction_status_history_no_truncate | trg_transaction_status_history_no_truncate                               | PASS
+ 111 | append-only                | change an audit record's actor                                | trg_audit_log_append_only                  | trg_audit_log_append_only                                                | PASS
+ 112 | append-only                | delete audit records                                          | trg_audit_log_append_only                  | trg_audit_log_append_only                                                | PASS
+ 113 | append-only                | truncate the audit log                                        | trg_audit_log_no_truncate                  | trg_audit_log_no_truncate                                                | PASS
+ 114 | on delete                  | delete a customer who has a wallet                            | fk_wallet_customer                         | fk_wallet_customer                                                       | PASS
+ 115 | on delete                  | delete a wallet that has transactions                         | fk_transaction_destination_wallet          | fk_transaction_destination_wallet                                        | PASS
+ 116 | on delete                  | delete a merchant that has a wallet                           | fk_wallet_merchant                         | fk_wallet_merchant                                                       | PASS
+ 117 | on delete                  | delete a KYC tier in use                                      | fk_kyc_profile_tier                        | fk_kyc_profile_tier                                                      | PASS
+ 118 | on delete                  | delete a fee rule used by transactions                        | fk_transaction_fee_rule                    | fk_transaction_fee_rule                                                  | PASS
+ 119 | on delete                  | delete a posted transaction                                   | fk_ledger_entry_transaction                | fk_ledger_entry_transaction                                              | PASS
+ 120 | on delete                  | erasing a customer removes phones and beneficiaries (CASCADE) | phones=0 beneficiaries=0                   | phones=0 beneficiaries=0                                                 | PASS
+
+ tests | passed | failed 
+-------+--------+--------
+   120 |    120 |      0
+
+DO
+
+== deferred check at COMMIT (an error is expected here)
+BEGIN
+INSERT 0 1
+INSERT 0 1
+-- both inserts were accepted; now COMMIT:
+psql:/workspace/portfolio-1-database-design/sql/tests/constraint_tests.sql:416: ERROR:  transaction 32 (SUCCESSFUL) is not balanced: 1 lines, debits 1000, credits 0
+HINT:  BR-13: a posted transaction needs at least two lines and debits = credits
+CONTEXT:  PL/pgSQL function check_transaction_balanced() line 19 at RAISE
+ rows_left_behind 
+------------------
+                0

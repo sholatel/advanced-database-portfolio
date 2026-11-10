@@ -1,0 +1,84 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Database catalogue compared with schema.md
+Captured at : 2026-11-10T21:48:03+01:00 (Africa/Lagos, WAT) | 2026-11-10T20:48:03Z (UTC)
+Command     : 'C:\Users\user\projects\advanced-database-portfolio\.venv\Scripts\python.exe' portfolio-1-database-design/scripts/check_catalogue.py
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 1.274 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : postgres (PostgreSQL) 16.15 (Debian 16.15-1.pgdg13+2)  [service 'postgres' in docker-compose.yml]
+================================================================================
+Catalogue check: database 'oworail', schema 'oworail' vs schema.md
+
+| check                                                   | result   | detail                                                                                 |
+|---------------------------------------------------------|----------|----------------------------------------------------------------------------------------|
+| constraint names: schema.md vs database                 | PASS     | 94 in schema.md, 94 in database                                                        |
+| constraint counts by kind                               | PASS     | PRIMARY KEY 13/13, UNIQUE 11/11, FOREIGN KEY 15/15, CHECK 54/54, EXCLUDE 1/1; total 94 |
+| normalisation.md final relations = schema.md            | PASS     | 13 relations compared                                                                  |
+| tables and columns match the text notation              | PASS     | 13 tables, 89 columns                                                                  |
+| ON DELETE: CASCADE for 3 FKs, RESTRICT for the other 12 | PASS     | all as designed                                                                        |
+| balanced-ledger triggers DEFERRABLE INITIALLY DEFERRED  | PASS     | trg_ledger_entry_balanced, trg_transaction_balanced                                    |
+| every foreign key has a supporting index                | PASS     | 15 of 15 covered                                                                       |
+| no role can UPDATE/DELETE/TRUNCATE append-only tables   | PASS     | ledger_entry, transaction_status_history, audit_log                                    |
+| PUBLIC cannot execute any function                      | PASS     | revoked                                                                                |
+
+Constraints by table and kind:
+
+| table                      |   PK |   UNIQUE |   FK |   CHECK |   EXCLUDE |   total |
+|----------------------------|------|----------|------|---------|-----------|---------|
+| audit_log                  |    1 |        0 |    0 |       2 |         0 |       3 |
+| customer                   |    1 |        1 |    0 |       4 |         0 |       6 |
+| customer_phone             |    1 |        0 |    1 |       1 |         0 |       3 |
+| fee_rule                   |    1 |        0 |    0 |       7 |         1 |       9 |
+| kyc_profile                |    1 |        2 |    2 |       5 |         0 |      10 |
+| kyc_tier                   |    1 |        1 |    0 |       4 |         0 |       6 |
+| ledger_entry               |    1 |        0 |    2 |       3 |         0 |       6 |
+| merchant                   |    1 |        1 |    0 |       5 |         0 |       7 |
+| reversal                   |    1 |        1 |    2 |       2 |         0 |       6 |
+| saved_beneficiary          |    1 |        0 |    2 |       1 |         0 |       4 |
+| transaction                |    1 |        2 |    3 |      11 |         0 |      17 |
+| transaction_status_history |    1 |        0 |    1 |       2 |         0 |       4 |
+| wallet                     |    1 |        3 |    2 |       7 |         0 |      13 |
+| total                      |   13 |       11 |   15 |      54 |         1 |      94 |
+
+Indexes (33):
+
+| table                      | index                             | definition                                                                                                                                                                                            |
+|----------------------------|-----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| audit_log                  | pk_audit_log                      | CREATE UNIQUE INDEX pk_audit_log ON oworail.audit_log USING btree (audit_id)                                                                                                                          |
+| customer                   | pk_customer                       | CREATE UNIQUE INDEX pk_customer ON oworail.customer USING btree (customer_id)                                                                                                                         |
+| customer                   | uq_customer_email                 | CREATE UNIQUE INDEX uq_customer_email ON oworail.customer USING btree (email)                                                                                                                         |
+| customer_phone             | ix_customer_phone_customer        | CREATE INDEX ix_customer_phone_customer ON oworail.customer_phone USING btree (customer_id)                                                                                                           |
+| customer_phone             | pk_customer_phone                 | CREATE UNIQUE INDEX pk_customer_phone ON oworail.customer_phone USING btree (phone_number)                                                                                                            |
+| fee_rule                   | excl_fee_rule_no_overlap          | CREATE INDEX excl_fee_rule_no_overlap ON oworail.fee_rule USING gist (transaction_type, int8range(min_amount_kobo, max_amount_kobo, '[]'::text), tstzrange(effective_from, effective_to, '[)'::text)) |
+| fee_rule                   | pk_fee_rule                       | CREATE UNIQUE INDEX pk_fee_rule ON oworail.fee_rule USING btree (fee_rule_id)                                                                                                                         |
+| kyc_profile                | ix_kyc_profile_tier               | CREATE INDEX ix_kyc_profile_tier ON oworail.kyc_profile USING btree (tier_level)                                                                                                                      |
+| kyc_profile                | pk_kyc_profile                    | CREATE UNIQUE INDEX pk_kyc_profile ON oworail.kyc_profile USING btree (kyc_profile_id)                                                                                                                |
+| kyc_profile                | uq_kyc_profile_customer           | CREATE UNIQUE INDEX uq_kyc_profile_customer ON oworail.kyc_profile USING btree (customer_id)                                                                                                          |
+| kyc_profile                | uq_kyc_profile_national_id        | CREATE UNIQUE INDEX uq_kyc_profile_national_id ON oworail.kyc_profile USING btree (id_type, national_id_number)                                                                                       |
+| kyc_tier                   | pk_kyc_tier                       | CREATE UNIQUE INDEX pk_kyc_tier ON oworail.kyc_tier USING btree (tier_level)                                                                                                                          |
+| kyc_tier                   | uq_kyc_tier_name                  | CREATE UNIQUE INDEX uq_kyc_tier_name ON oworail.kyc_tier USING btree (tier_name)                                                                                                                      |
+| ledger_entry               | ix_ledger_entry_wallet            | CREATE INDEX ix_ledger_entry_wallet ON oworail.ledger_entry USING btree (wallet_id)                                                                                                                   |
+| ledger_entry               | pk_ledger_entry                   | CREATE UNIQUE INDEX pk_ledger_entry ON oworail.ledger_entry USING btree (transaction_id, line_no)                                                                                                     |
+| merchant                   | pk_merchant                       | CREATE UNIQUE INDEX pk_merchant ON oworail.merchant USING btree (merchant_id)                                                                                                                         |
+| merchant                   | uq_merchant_code                  | CREATE UNIQUE INDEX uq_merchant_code ON oworail.merchant USING btree (merchant_code)                                                                                                                  |
+| reversal                   | pk_reversal                       | CREATE UNIQUE INDEX pk_reversal ON oworail.reversal USING btree (original_transaction_id)                                                                                                             |
+| reversal                   | uq_reversal_reversal_transaction  | CREATE UNIQUE INDEX uq_reversal_reversal_transaction ON oworail.reversal USING btree (reversal_transaction_id)                                                                                        |
+| saved_beneficiary          | ix_saved_beneficiary_wallet       | CREATE INDEX ix_saved_beneficiary_wallet ON oworail.saved_beneficiary USING btree (wallet_id)                                                                                                         |
+| saved_beneficiary          | pk_saved_beneficiary              | CREATE UNIQUE INDEX pk_saved_beneficiary ON oworail.saved_beneficiary USING btree (customer_id, wallet_id)                                                                                            |
+| transaction                | ix_transaction_destination_wallet | CREATE INDEX ix_transaction_destination_wallet ON oworail.transaction USING btree (destination_wallet_id)                                                                                             |
+| transaction                | ix_transaction_fee_rule           | CREATE INDEX ix_transaction_fee_rule ON oworail.transaction USING btree (fee_rule_id)                                                                                                                 |
+| transaction                | ix_transaction_source_wallet      | CREATE INDEX ix_transaction_source_wallet ON oworail.transaction USING btree (source_wallet_id)                                                                                                       |
+| transaction                | pk_transaction                    | CREATE UNIQUE INDEX pk_transaction ON oworail.transaction USING btree (transaction_id)                                                                                                                |
+| transaction                | uq_transaction_idempotency_key    | CREATE UNIQUE INDEX uq_transaction_idempotency_key ON oworail.transaction USING btree (idempotency_key)                                                                                               |
+| transaction                | uq_transaction_ref                | CREATE UNIQUE INDEX uq_transaction_ref ON oworail.transaction USING btree (transaction_ref)                                                                                                           |
+| transaction_status_history | pk_transaction_status_history     | CREATE UNIQUE INDEX pk_transaction_status_history ON oworail.transaction_status_history USING btree (transaction_id, seq_no)                                                                          |
+| wallet                     | ix_wallet_customer                | CREATE INDEX ix_wallet_customer ON oworail.wallet USING btree (customer_id)                                                                                                                           |
+| wallet                     | pk_wallet                         | CREATE UNIQUE INDEX pk_wallet ON oworail.wallet USING btree (wallet_id)                                                                                                                               |
+| wallet                     | uq_wallet_merchant                | CREATE UNIQUE INDEX uq_wallet_merchant ON oworail.wallet USING btree (merchant_id)                                                                                                                    |
+| wallet                     | uq_wallet_number                  | CREATE UNIQUE INDEX uq_wallet_number ON oworail.wallet USING btree (wallet_number)                                                                                                                    |
+| wallet                     | uq_wallet_system_purpose          | CREATE UNIQUE INDEX uq_wallet_system_purpose ON oworail.wallet USING btree (system_purpose)                                                                                                           |
+
+9 of 9 checks passed

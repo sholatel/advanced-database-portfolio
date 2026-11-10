@@ -93,7 +93,7 @@ Each portfolio folder has its own `README.md` explaining what was implemented, h
 | Milestone | Scope | Status |
 |---|---|---|
 | M1 | Repository scaffold, case study, database containers | Done |
-| M2–M4 | P1: requirements, ER diagram (Chen), relational schema, normalisation, implementation | In progress (M2 done: requirements, business rules, ERD; M3 done: relational schema, keys, constraints, normalisation) |
+| M2–M4 | P1: requirements, ER diagram (Chen), relational schema, normalisation, implementation | Done |
 | M5–M6 | P2: query workload, execution plans, indexing and optimisation | Planned |
 | M7–M8 | P3: transactions (commit, rollback, savepoint), isolation and concurrency control | Planned |
 | M9 | P4: MongoDB document model on the same case study | Planned |
@@ -142,7 +142,7 @@ docker compose down -v       # stop containers and DELETE the data volumes (clea
 | PostgreSQL | `127.0.0.1:5433` | non-default port, so it doesn't clash with a local PostgreSQL on 5432 |
 | MongoDB | `127.0.0.1:27018` | non-default port, so it doesn't clash with a local MongoDB on 27017 |
 
-The repository is mounted read-only inside both containers at `/workspace`, so SQL and JavaScript files run in place (for example `psql -f /workspace/portfolio-1-database-design/sql/01_schema.sql`). Portfolio-specific instructions are in each portfolio's README.
+The repository is mounted read-only inside both containers at `/workspace`, so SQL and JavaScript files run in place (for example `psql -f /workspace/portfolio-1-database-design/sql/build.sql`). Portfolio-specific instructions are in each portfolio's README.
 
 **Evidence capture.** Outputs used as evidence are saved with `tools/capture_evidence.py`. It writes a header (capture time in Africa/Lagos and UTC, exact command, exit code, tool and server versions) followed by the raw output, and redacts any secrets from `.env`.
 
@@ -155,7 +155,8 @@ Completed portfolio by portfolio; finalised in M11.
 | Case study stated | [Section 1 above](#1-selected-case-study-oworail) |
 | Database environment (PostgreSQL) | [m1_postgres_environment.txt](portfolio-1-database-design/evidence/m1_postgres_environment.txt) |
 | Database environment (MongoDB) | [m1_mongo_environment.txt](portfolio-4-nosql/evidence/m1_mongo_environment.txt) |
-| Portfolio 1–5 evidence | _added as each portfolio is completed_ |
+| Portfolio 1: design and implementation | [portfolio-1-database-design/README.md](portfolio-1-database-design/README.md#required-evidence) (ERD, schema, keys, constraints, normalisation, build and test outputs) |
+| Portfolio 2–5 evidence | _added as each portfolio is completed_ |
 
 ## 7. Academic integrity and AI use
 

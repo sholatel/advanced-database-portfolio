@@ -93,7 +93,7 @@ Each portfolio folder has its own `README.md` explaining what was implemented, h
 | Milestone | Scope | Status |
 |---|---|---|
 | M1 | Repository scaffold, case study, database containers | Done |
-| M2–M4 | P1: requirements, ER diagram (Chen), relational schema, normalisation, implementation | In progress (M2 done: requirements, business rules, ERD) |
+| M2–M4 | P1: requirements, ER diagram (Chen), relational schema, normalisation, implementation | In progress (M2 done: requirements, business rules, ERD; M3 done: relational schema, keys, constraints, normalisation) |
 | M5–M6 | P2: query workload, execution plans, indexing and optimisation | Planned |
 | M7–M8 | P3: transactions (commit, rollback, savepoint), isolation and concurrency control | Planned |
 | M9 | P4: MongoDB document model on the same case study | Planned |
@@ -152,14 +152,14 @@ Completed portfolio by portfolio; finalised in M11.
 
 | CA requirement | Evidence |
 |---|---|
-| Case study stated (CA §2) | [Section 1 above](#1-selected-case-study-oworail) |
+| Case study stated | [Section 1 above](#1-selected-case-study-oworail) |
 | Database environment (PostgreSQL) | [m1_postgres_environment.txt](portfolio-1-database-design/evidence/m1_postgres_environment.txt) |
 | Database environment (MongoDB) | [m1_mongo_environment.txt](portfolio-4-nosql/evidence/m1_mongo_environment.txt) |
-| P1–P5 evidence (CA §4) | _added as each portfolio is completed_ |
+| Portfolio 1–5 evidence | _added as each portfolio is completed_ |
 
 ## 7. Academic integrity and AI use
 
-I designed this portfolio. I chose the OwoRail case study and defined the architecture, the technology stack, the data-design conventions (integer kobo, double-entry ledger, idempotency keys, role-based access) and the milestone plan, and I made the design decisions at each stage. I used **Claude Code** (Anthropic) as a coding and writing assistant: to generate scripts and draft documentation to my specifications, and to save time on repetitive work. I reviewed, ran and tested all generated output, modified it where needed, and verified every result before committing it. Details per milestone are in [docs/ai-assistance-log.md](docs/ai-assistance-log.md). The full AI Use Declaration (CA §11) is added in the final milestone.
+I designed this portfolio. I chose the OwoRail case study and defined the architecture, the technology stack, the data-design conventions (integer kobo, double-entry ledger, idempotency keys, role-based access) and the milestone plan, and I made the design decisions at each stage. I used **Claude Code** (Anthropic) as a coding and writing assistant: to generate scripts and draft documentation to my specifications, and to save time on repetitive work. I reviewed, ran and tested all generated output, modified it where needed, and verified every result before committing it. Details per milestone are in [docs/ai-assistance-log.md](docs/ai-assistance-log.md). The full AI Use Declaration is added in the final milestone.
 
 ## 8. References
 

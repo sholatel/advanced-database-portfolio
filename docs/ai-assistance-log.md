@@ -1,6 +1,6 @@
 # AI Assistance Log
 
-This log records, milestone by milestone, how I (Yusuf O. Sholadoye) used an AI assistant in this portfolio, what I changed, and how I verified the results. It is the basis for the AI Use Declaration required by CA §11.
+This log records, milestone by milestone, how I (Yusuf O. Sholadoye) used an AI assistant in this portfolio, what I changed, and how I verified the results. It is the basis for the AI Use Declaration required by the assessment.
 
 - **AI tool:** Claude Code (Anthropic), used in VS Code as a coding and writing assistant. Model: Claude Opus 5.5.
 - **How I work with it:** I define the case study, the architecture, the data-design conventions and the milestone plan, and I make the design decisions. For each milestone I specify the work. The assistant generates scripts and drafts documentation to that specification and saves time on repetitive work. I review, run and test the output, modify it where needed, and commit it myself.
@@ -59,5 +59,21 @@ This log records, milestone by milestone, how I (Yusuf O. Sholadoye) used an AI 
 - I inspected the rendered diagram for readability; the first layout was unreadable and was rebuilt with fixed node positions.
 - The traceability table was checked so that every entity and relationship maps to a business rule, and BR-01 to BR-17 each appear in the ERD (BR-18, access control, is implemented in M4).
 - Confirmed that PostgreSQL 16 accepts `transaction` as an unquoted table name.
+
+---
+
+## M3: Logical design: relational schema, keys, constraints and normalisation (10 Nov 2026)
+
+**My decisions:** named CHECK constraints rather than ENUM types; `ON DELETE RESTRICT` for all financial foreign keys (records are closed, never deleted), with CASCADE only for phone numbers and saved beneficiaries; surrogate identity keys with every natural key kept as a UNIQUE alternate key; integer kobo and UTC timestamps throughout.
+
+**Design decisions (approved at review):**
+- HOLDS mapped as a UNIQUE foreign key on `wallet` (not on `merchant`), so every wallet's owner sits in one table under one exclusive-ownership CHECK.
+- REVERSES mapped to its own `reversal` relation, so "reversed at most once" is a primary key and transactions carry no reversal-only NULL columns.
+- The national ID number is unique per ID type (BVN and NIN are separate numbering schemes); the requirements document was updated to match.
+- The national ID CHECK requires the synthetic `999` prefix, so the portfolio database cannot hold a real BVN or NIN.
+- Non-overlapping fee rules enforced with an exclusion constraint (`btree_gist`).
+- A foreign-key note added to the ERD notation section (prompted by my question about where the wallet links are on the diagram).
+
+**AI assistance used:** drafted `schema.md` (mapping rules, keys, column and constraint tables) and `normalisation.md` (sample report, functional dependencies, UNF to BCNF steps, redundancy justification) to my specification.
 
 ---

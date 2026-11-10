@@ -1,11 +1,6 @@
 # P1: Requirements Analysis, Business Rules and Conceptual Design
 
-This document covers the first two **stages of database design** (Course §1.1.2):
-
-- **Stage 1: Requirements Analysis.** Purpose, users, entities and attributes, business rules, functional and non-functional requirements (sections 1–6).
-- **Stage 2: Conceptual Design.** ER model and ER diagram in Chen notation, with entities, attributes, relationships, cardinalities and keys (sections 7–9).
-
-Logical Design (relational schema, normalisation) follows in [schema.md](schema.md) and [normalisation.md](normalisation.md); Physical Design in `sql/`.
+Before designing any tables, I set out what OwoRail's database has to do: who uses it, what data it holds and which business rules it must enforce. That is the requirements analysis (sections 1–6). From it I built the conceptual model, an ER diagram in Chen notation (sections 7–9). The logical design follows in [schema.md](schema.md) and [normalisation.md](normalisation.md), and the physical design in `sql/`.
 
 ---
 
@@ -30,7 +25,7 @@ The OwoRail database is the **system of record for customer wallets and money mo
 
 ## 2. Users and their data needs
 
-| User | Needs to… | Access (designed in Physical Design, M4) |
+| User | Needs to… | Access (enforced by database roles in the physical design) |
 |---|---|---|
 | Customers (mobile app) | onboard, transfer, pay, view statements | only through the payments application, never directly |
 | Merchants | receive payments, view settlement reports | through the application and reports |
@@ -44,7 +39,7 @@ The OwoRail database is the **system of record for customer wallets and money mo
 
 ## 3. Entities and attributes (data dictionary)
 
-Attribute kinds use the Chen terms from the course: **key**, simple, **composite**, **multi-valued**, **derived**. "Stored" means the value is kept in the database; derived attributes are computed when needed. Money is always integer **kobo** (₦1 = 100 kobo); timestamps are UTC.
+Attribute kinds use the Chen terms: **key**, simple, **composite**, **multi-valued**, **derived**. "Stored" means the value is kept in the database; derived attributes are computed when needed. Money is always integer **kobo** (₦1 = 100 kobo); timestamps are UTC.
 
 ### CUSTOMER
 | Attribute | Kind | Domain / notes | BR |
@@ -64,9 +59,9 @@ Attribute kinds use the Chen terms from the course: **key**, simple, **composite
 |---|---|---|---|
 | kyc_profile_id | key | system-generated integer | BR-03 |
 | id_type | simple | BVN or NIN | BR-03 |
-| national_id_number | simple | 11 digits, unique; **synthetic, prefixed `999`** | BR-03 |
+| national_id_number | simple | 11 digits, unique within its id_type (BVN and NIN are separate numbering schemes); **synthetic, prefixed `999`** | BR-03 |
 | verification_status | simple | PENDING, VERIFIED, REJECTED | BR-03 |
-| verified_at, verified_by | simple | set when verified; verified_by is a staff username | BR-03 |
+| verified_at, verified_by | simple | set when the profile is reviewed (VERIFIED or REJECTED); verified_by is a staff username | BR-03 |
 
 ### KYC_TIER
 | Attribute | Kind | Domain / notes | BR |
@@ -164,7 +159,7 @@ A ledger entry has no timestamp of its own. It is posted at its transaction's `c
 |---|---|
 | **BR-01** | Each customer has a unique customer ID and a unique email address, a full name, a date of birth and one residential address (street, city, state). A customer must be at least 18 years old when onboarded. Status is ACTIVE, SUSPENDED or CLOSED. |
 | **BR-02** | A customer registers one or more phone numbers. A phone number is the login identifier, so it can belong to only one customer. |
-| **BR-03** | A customer has at most one KYC profile, and a KYC profile belongs to exactly one customer. It records the identity type (BVN or NIN), a unique national identity number and a verification status (PENDING, VERIFIED, REJECTED). |
+| **BR-03** | A customer has at most one KYC profile, and a KYC profile belongs to exactly one customer. It records the identity type (BVN or NIN), a national identity number that is unique for its type, and a verification status (PENDING, VERIFIED, REJECTED). |
 | **BR-04** | Every KYC profile is classified into exactly one KYC tier (1, 2 or 3). The tier, not the individual profile, defines the single-transaction limit, daily limit and maximum wallet balance. |
 | **BR-05** | Every wallet has a unique wallet ID and a unique 10-digit wallet number, holds naira (NGN) only, has a type (CUSTOMER, MERCHANT, SYSTEM) and a status (ACTIVE, FROZEN, CLOSED). A FROZEN or CLOSED wallet cannot send or receive money. |
 | **BR-06** | A CUSTOMER wallet is owned by exactly one customer; a MERCHANT wallet is held by exactly one merchant; a SYSTEM wallet (purpose FEES, SETTLEMENT or SUSPENSE) has no owner. A customer gets a wallet at onboarding and may own several; a merchant has exactly one settlement wallet. |
@@ -183,7 +178,7 @@ A ledger entry has no timestamp of its own. It is posted at its transaction's `c
 
 ## 5. Functional requirements
 
-| ID | Requirement | Key operation (case study §1.5) | BRs |
+| ID | Requirement | Case-study operation | BRs |
 |---|---|---|---|
 | FR-01 | Onboard a customer with phone numbers and address, and open a CUSTOMER wallet | 1 | BR-01, 02, 05, 06 |
 | FR-02 | Record and verify KYC; assign a KYC tier | 1 | BR-03, 04 |
@@ -203,13 +198,13 @@ A ledger entry has no timestamp of its own. It is posted at its transaction's `c
 | ID | Category | Requirement |
 |---|---|---|
 | NFR-01 | Integrity | All money movement is atomic and consistent (ACID); ledger balanced per transaction; no negative customer balances. |
-| NFR-02 | Concurrency | Concurrent transfers must not lose updates or deadlock-cascade; duplicate requests must not double-post (P3). |
-| NFR-03 | Performance | At about 1 million transactions: phone lookup and first statement page in milliseconds; reports in seconds (measured in P2). |
-| NFR-04 | Security | Least-privilege roles; KYC identity data separated from operational data; parameterised queries only (Course §3.2.2). |
-| NFR-05 | Privacy | Data minimisation and privacy by design (NDPA 2023, Course Session 6); this portfolio uses synthetic data only. |
+| NFR-02 | Concurrency | Concurrent transfers must not lose updates or deadlock-cascade; duplicate requests must not double-post (Portfolio 3). |
+| NFR-03 | Performance | At about 1 million transactions: phone lookup and first statement page in milliseconds; reports in seconds (measured in Portfolio 2). |
+| NFR-04 | Security | Least-privilege roles; KYC identity data separated from operational data; parameterised queries only. |
+| NFR-05 | Privacy | Data minimisation and privacy by design (NDPA 2023); this portfolio uses synthetic data only. |
 | NFR-06 | Auditability | Append-only audit log; immutable ledger; full status history. |
 | NFR-07 | Time and money representation | Timestamps in UTC (`timestamptz`); money in integer kobo, never floating point. |
-| NFR-08 | Availability and scalability | A design path to replication and sharding (P5). |
+| NFR-08 | Availability and scalability | A design path to replication and sharding (Portfolio 5). |
 | NFR-09 | Recoverability | Daily backups with point-in-time recovery (design statement; out of scope to implement). |
 
 ---
@@ -220,7 +215,7 @@ A ledger entry has no timestamp of its own. It is posted at its transaction's `c
 
 Source: [erd/erd-chen.dot](erd/erd-chen.dot) (Graphviz), rendered to [SVG](erd/erd-chen.svg) and [PNG](erd/erd-chen.png). Render with `dot -Tsvg erd-chen.dot -o erd-chen.svg` from the `erd/` folder (render log: [evidence/m2_erd_render.txt](evidence/m2_erd_render.txt)).
 
-**Notation** (course Chen notation, Session 1):
+**Notation** (Chen):
 - entity = rectangle
 - attribute = ellipse
 - key attribute = underlined
@@ -229,8 +224,9 @@ Source: [erd/erd-chen.dot](erd/erd-chen.dot) (Graphviz), rendered to [SVG](erd/e
 - composite attribute = ellipse joined to its component ellipses
 - relationship = diamond
 - each line from an entity to a relationship is labelled with the cardinality ratio (1, N or M)
+- **foreign keys are not drawn as attributes.** The relationship diamond is the link. For example, DEBITS and CREDITS become the columns `transaction.source_wallet_id` and `transaction.destination_wallet_id` in Logical Design ([schema.md](schema.md)).
 
-**Supplementary notation** (Elmasri & Navathe, 2016, ch. 3; not in the course's symbol table):
+**Extended notation** (Elmasri & Navathe, 2016):
 - **weak entity** = double rectangle
 - **identifying relationship** = double diamond
 - **partial key** = underlined italic (Elmasri & Navathe use a dashed underline, which Graphviz cannot draw)
@@ -289,7 +285,7 @@ AUDIT_LOG deliberately has **no relationships**. Its target is a polymorphic ref
 | AUDIT_LOG | entity | BR-17 |
 | (access roles, Physical Design) | not an ERD element | BR-18 |
 
-**Check:** all 10 entities and 12 relationships trace to at least one rule, and every rule BR-01 to BR-17 appears in the ERD. BR-18 is enforced by database roles in Physical Design (M4), not by the data model.
+**Check:** all 10 entities and 12 relationships trace to at least one rule, and every rule BR-01 to BR-17 appears in the ERD. BR-18 is enforced by database roles in the physical design, not by the data model.
 
 ## 10. Design decisions and assumptions
 

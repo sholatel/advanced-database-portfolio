@@ -1,0 +1,80 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Replication, write concerns, failover, rollback, stale and causal reads
+Captured at : 2026-11-11T07:59:36+01:00 (Africa/Lagos, WAT) | 2026-11-11T06:59:36Z (UTC)
+Command     : 'C:\Users\user\projects\advanced-database-portfolio\.venv\Scripts\python.exe' portfolio-5-distributed-cloud/scripts/replication.py
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 221.606 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+================================================================================
+
+=== R0  Initiate the replica set and create the admin user
+    12415 ms  sys  {"ok":1}
+    30437 ms  sys  mongo1 is primary after 18.0 s
+    37819 ms  sys  admin user created
+| member          | state     | syncing from    |   health |
+|-----------------|-----------|-----------------|----------|
+| 127.0.0.1:27021 | PRIMARY   | -               |        1 |
+| 127.0.0.1:27022 | SECONDARY | 127.0.0.1:27021 |        1 |
+| 127.0.0.1:27023 | SECONDARY | 127.0.0.1:27021 |        1 |
+    39031 ms  sys  electionTimeoutMillis 10000, heartbeatIntervalMillis 2000
+    39031 ms  chk  PASS  three members: one PRIMARY and two SECONDARY
+
+=== R1  A write on the primary reaches both secondaries
+    41050 ms  sys  mongo2: visible after median 17.1 ms, max 393.7 ms (20 writes)
+    41050 ms  sys  mongo3: visible after median 18.0 ms, max 359.0 ms (20 writes)
+    41214 ms  sys  oplog entry on a secondary: op=i ns=owr.transactions o._id=OWR500000000019 ts=Timestamp(1794380420, 19)
+    41235 ms  chk  PASS  both secondaries hold all 20 documents  ({'mongo2': 20, 'mongo3': 20})
+    41236 ms  chk  PASS  the secondaries applied the writes from the oplog
+
+=== R2  What each write concern costs
+| write concern        |   median ms |   p95 ms |
+|----------------------|-------------|----------|
+| w: 1                 |       17.44 |    43.18 |
+| w: majority          |       49.26 |   244.93 |
+| w: 3 (all)           |       24.3  |    82.04 |
+| w: majority, j: true |       12.18 |    33.27 |
+    70493 ms  chk  PASS  waiting for a majority costs more than w:1  (17.44 < 49.26 ms)
+
+=== R3  Automatic failover: the primary is killed while a client keeps writing
+    73819 ms  sys  docker compose kill mongo1   (writes so far: 97)
+    93402 ms  sys  new primary: mongo2
+    98432 ms  sys  longest gap between two acknowledged writes: 11.4 s; errors seen by the application: 0 (none: the driver retried the write)
+    98437 ms  chk  PASS  a secondary was elected and writes resumed  (mongo1 -> mongo2)
+    98437 ms  chk  PASS  writes paused for about the election time, then resumed  (11.4 s)
+    98437 ms  chk  PASS  every acknowledged majority write survived the failover  (441 acknowledged, 441 stored)
+
+=== R3b The old primary comes back
+   107214 ms  sys  mongo1 rejoined as SECONDARY after 6.4 s and caught up from the oplog
+   119629 ms  sys  mongo1 (priority 2) took over as PRIMARY 12.4 s later
+   120496 ms  chk  PASS  the restarted node rejoins and, with the highest priority, becomes primary again
+
+=== R4  A w:1 write acknowledged by an isolated primary is rolled back
+   120983 ms  sys  docker compose kill mongo2 mongo3   (the primary is cut off from both secondaries)
+   122471 ms  app  insert A with w:1 -> acknowledged
+   125681 ms  app  insert B with w:majority -> WTimeoutError (the client is told it is not durable)
+   125681 ms  sys  docker compose kill mongo1; docker compose start mongo2 mongo3
+   151619 ms  sys  mongo3 elected after 20.2 s
+   151780 ms  app  insert C with w:majority on the new primary -> acknowledged
+   151780 ms  sys  docker compose start mongo1
+   177125 ms  sys  documents now in the replica set: ['C']
+   177125 ms  sys  rollback files on mongo1: /data/db/rollback: 74f85745-0e6d-4fc5-9967-7e51c565ba23 /data/db/rollback/74f85745-0e6d-4fc5-9967-7e51c565ba23: removed.2026-11-11T07-02-20.0.bson
+   177125 ms  chk  PASS  isolated primary: the w:majority write is not acknowledged
+   177125 ms  chk  PASS  the w:1 write A was acknowledged and then lost
+   177125 ms  chk  PASS  B was rolled back too, but the client had been told
+   177125 ms  chk  PASS  the majority write C on the new primary is kept
+   177125 ms  chk  PASS  the rolled-back data is saved to a rollback file
+
+=== R5  Reading from a secondary: stale reads, and causal consistency
+   178919 ms  sys  mongo3: fsyncLock (it stops applying the oplog, as a badly lagging secondary would)
+   212515 ms  app  insert D with w:majority -> acknowledged by mongo1 and mongo2
+   212630 ms  app  read D on mongo3: None; on the primary (majority): True
+   213452 ms  sys  mongo3 unlocked; D visible there after 774 ms
+   213452 ms  chk  PASS  a lagging secondary returns stale data (D missing)
+   213452 ms  chk  PASS  the primary with majority read concern returns D
+   218227 ms  app  causal session: 50 updates each read back from a secondary, 0 stale reads
+   218227 ms  chk  PASS  in a causally consistent session a secondary read always sees the session's own write
+
+Replica set: 16 of 16 checks passed

@@ -1,0 +1,156 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Replica set containers
+Captured at : 2026-11-11T07:59:21+01:00 (Africa/Lagos, WAT) | 2026-11-11T06:59:21Z (UTC)
+Command     : docker compose -f portfolio-5-distributed-cloud/docker-compose.replicaset.yml --env-file .env up -d
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 11.092 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+================================================================================
+ Network oworail-p5-rs_default  Creating
+ Network oworail-p5-rs_default  Created
+ Volume "oworail-p5-rs_keys"  Creating
+ Volume "oworail-p5-rs_keys"  Created
+ Volume "oworail-p5-rs_rs2"  Creating
+ Volume "oworail-p5-rs_rs2"  Created
+ Volume "oworail-p5-rs_rs3"  Creating
+ Volume "oworail-p5-rs_rs3"  Created
+ Volume "oworail-p5-rs_rs1"  Creating
+ Volume "oworail-p5-rs_rs1"  Created
+ Container oworail-p5-rs-net-1  Creating
+ Container oworail-p5-rs-net-1  Created
+ Container oworail-p5-rs-mongo3-1  Creating
+ Container oworail-p5-rs-mongo1-1  Creating
+ Container oworail-p5-rs-mongo2-1  Creating
+ Container oworail-p5-rs-mongo1-1  Created
+ Container oworail-p5-rs-mongo3-1  Created
+ Container oworail-p5-rs-mongo2-1  Created
+ Container oworail-p5-rs-net-1  Starting
+ Container oworail-p5-rs-net-1  Started
+ Container oworail-p5-rs-mongo2-1  Starting
+ Container oworail-p5-rs-mongo3-1  Starting
+ Container oworail-p5-rs-mongo1-1  Starting
+ Container oworail-p5-rs-mongo1-1  Started
+ Container oworail-p5-rs-mongo3-1  Started
+ Container oworail-p5-rs-mongo2-1  Started
+
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Replica set container status
+Captured at : 2026-11-11T07:59:33+01:00 (Africa/Lagos, WAT) | 2026-11-11T06:59:33Z (UTC)
+Command     : docker compose -f portfolio-5-distributed-cloud/docker-compose.replicaset.yml --env-file .env ps
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 0.808 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+================================================================================
+NAME                     IMAGE       COMMAND                  SERVICE   CREATED         STATUS         PORTS
+oworail-p5-rs-mongo1-1   mongo:7.0   "docker-entrypoint.s…"   mongo1    6 seconds ago   Up 2 seconds   
+oworail-p5-rs-mongo2-1   mongo:7.0   "docker-entrypoint.s…"   mongo2    6 seconds ago   Up 2 seconds   
+oworail-p5-rs-mongo3-1   mongo:7.0   "docker-entrypoint.s…"   mongo3    6 seconds ago   Up 2 seconds   
+oworail-p5-rs-net-1      mongo:7.0   "docker-entrypoint.s…"   net       7 seconds ago   Up 4 seconds   127.0.0.1:27021-27023->27021-27023/tcp
+
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Stop the replica set
+Captured at : 2026-11-11T08:03:21+01:00 (Africa/Lagos, WAT) | 2026-11-11T07:03:21Z (UTC)
+Command     : docker compose -f portfolio-5-distributed-cloud/docker-compose.replicaset.yml --env-file .env stop
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 34.502 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+================================================================================
+ Container oworail-p5-rs-mongo2-1  Stopping
+ Container oworail-p5-rs-mongo1-1  Stopping
+ Container oworail-p5-rs-mongo3-1  Stopping
+ Container oworail-p5-rs-mongo2-1  Stopped
+ Container oworail-p5-rs-mongo1-1  Stopped
+ Container oworail-p5-rs-mongo3-1  Stopped
+ Container oworail-p5-rs-net-1  Stopping
+ Container oworail-p5-rs-net-1  Stopped
+
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Sharded cluster containers
+Captured at : 2026-11-11T08:03:58+01:00 (Africa/Lagos, WAT) | 2026-11-11T07:03:58Z (UTC)
+Command     : docker compose -f portfolio-5-distributed-cloud/docker-compose.sharded.yml --env-file .env up -d
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 21.710 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+================================================================================
+ Network oworail-p5-sh_default  Creating
+ Network oworail-p5-sh_default  Created
+ Volume "oworail-p5-sh_cfg"  Creating
+ Volume "oworail-p5-sh_cfg"  Created
+ Volume "oworail-p5-sh_keys"  Creating
+ Volume "oworail-p5-sh_keys"  Created
+ Volume "oworail-p5-sh_sha"  Creating
+ Volume "oworail-p5-sh_sha"  Created
+ Volume "oworail-p5-sh_shb"  Creating
+ Volume "oworail-p5-sh_shb"  Created
+ Container oworail-p5-sh-net-1  Creating
+ Container oworail-p5-sh-net-1  Created
+ Container oworail-p5-sh-config-1  Creating
+ Container oworail-p5-sh-shard_a-1  Creating
+ Container oworail-p5-sh-shard_b-1  Creating
+ Container oworail-p5-sh-config-1  Created
+ Container oworail-p5-sh-router-1  Creating
+ Container oworail-p5-sh-shard_b-1  Created
+ Container oworail-p5-sh-shard_a-1  Created
+ Container oworail-p5-sh-router-1  Created
+ Container oworail-p5-sh-net-1  Starting
+ Container oworail-p5-sh-net-1  Started
+ Container oworail-p5-sh-config-1  Starting
+ Container oworail-p5-sh-shard_a-1  Starting
+ Container oworail-p5-sh-shard_b-1  Starting
+ Container oworail-p5-sh-config-1  Started
+ Container oworail-p5-sh-router-1  Starting
+ Container oworail-p5-sh-shard_b-1  Started
+ Container oworail-p5-sh-shard_a-1  Started
+ Container oworail-p5-sh-router-1  Started
+
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Sharded cluster container status
+Captured at : 2026-11-11T08:04:24+01:00 (Africa/Lagos, WAT) | 2026-11-11T07:04:24Z (UTC)
+Command     : docker compose -f portfolio-5-distributed-cloud/docker-compose.sharded.yml --env-file .env ps
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 3.576 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+================================================================================
+NAME                      IMAGE       COMMAND                  SERVICE   CREATED          STATUS          PORTS
+oworail-p5-sh-config-1    mongo:7.0   "docker-entrypoint.s…"   config    25 seconds ago   Up 11 seconds   
+oworail-p5-sh-net-1       mongo:7.0   "docker-entrypoint.s…"   net       26 seconds ago   Up 16 seconds   127.0.0.1:27030-27033->27030-27033/tcp
+oworail-p5-sh-router-1    mongo:7.0   "docker-entrypoint.s…"   router    23 seconds ago   Up 10 seconds   
+oworail-p5-sh-shard_a-1   mongo:7.0   "docker-entrypoint.s…"   shard_a   25 seconds ago   Up 11 seconds   
+oworail-p5-sh-shard_b-1   mongo:7.0   "docker-entrypoint.s…"   shard_b   25 seconds ago   Up 11 seconds   
+
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Stop the sharded cluster
+Captured at : 2026-11-11T08:07:33+01:00 (Africa/Lagos, WAT) | 2026-11-11T07:07:33Z (UTC)
+Command     : docker compose -f portfolio-5-distributed-cloud/docker-compose.sharded.yml --env-file .env stop
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 37.533 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+================================================================================
+ Container oworail-p5-sh-shard_b-1  Stopping
+ Container oworail-p5-sh-shard_a-1  Stopping
+ Container oworail-p5-sh-router-1  Stopping
+ Container oworail-p5-sh-shard_b-1  Stopped
+ Container oworail-p5-sh-shard_a-1  Stopped
+ Container oworail-p5-sh-router-1  Stopped
+ Container oworail-p5-sh-config-1  Stopping
+ Container oworail-p5-sh-config-1  Stopped
+ Container oworail-p5-sh-net-1  Stopping
+ Container oworail-p5-sh-net-1  Stopped

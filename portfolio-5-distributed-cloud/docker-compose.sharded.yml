@@ -1,0 +1,55 @@
+# A small sharded cluster: config server, two shards and a mongos router, all one-member
+# replica sets in the "net" service's network namespace (addresses 127.0.0.1:<port>).
+name: oworail-p5-sh
+
+x-node: &node
+  image: mongo:7.0
+  network_mode: "service:net"
+  depends_on: [net]
+  restart: "no"
+
+services:
+  net:
+    image: mongo:7.0
+    command:
+      - bash
+      - -c
+      - |
+        head -c 756 /dev/urandom | base64 -w 0 > /keys/keyfile
+        chmod 400 /keys/keyfile
+        chown 999:999 /keys/keyfile
+        exec sleep infinity
+    ports:
+      - "127.0.0.1:27030:27030"
+      - "127.0.0.1:27031:27031"
+      - "127.0.0.1:27032:27032"
+      - "127.0.0.1:27033:27033"
+    volumes:
+      - keys:/keys
+
+  config:
+    <<: *node
+    command: [bash, -c, "until [ -s /keys/keyfile ]; do sleep 1; done; exec gosu mongodb mongod --configsvr --replSet cfg --port 27031 --bind_ip_all --keyFile /keys/keyfile --wiredTigerCacheSizeGB 0.25 --dbpath /data/db"]
+    volumes: [keys:/keys:ro, cfg:/data/db]
+
+  shard_a:
+    <<: *node
+    command: [bash, -c, "until [ -s /keys/keyfile ]; do sleep 1; done; exec gosu mongodb mongod --shardsvr --replSet shardA --port 27032 --bind_ip_all --keyFile /keys/keyfile --wiredTigerCacheSizeGB 0.25 --dbpath /data/db"]
+    volumes: [keys:/keys:ro, sha:/data/db]
+
+  shard_b:
+    <<: *node
+    command: [bash, -c, "until [ -s /keys/keyfile ]; do sleep 1; done; exec gosu mongodb mongod --shardsvr --replSet shardB --port 27033 --bind_ip_all --keyFile /keys/keyfile --wiredTigerCacheSizeGB 0.25 --dbpath /data/db"]
+    volumes: [keys:/keys:ro, shb:/data/db]
+
+  router:
+    <<: *node
+    depends_on: [net, config]
+    command: [bash, -c, "until [ -s /keys/keyfile ]; do sleep 1; done; until mongosh --port 27031 --quiet --eval 'db.hello().isWritablePrimary' | grep -q true; do sleep 2; done; exec gosu mongodb mongos --configdb cfg/127.0.0.1:27031 --port 27030 --bind_ip_all --keyFile /keys/keyfile"]
+    volumes: [keys:/keys:ro]
+
+volumes:
+  keys:
+  cfg:
+  sha:
+  shb:

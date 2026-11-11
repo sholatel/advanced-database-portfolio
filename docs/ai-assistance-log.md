@@ -169,3 +169,22 @@ This log records, milestone by milestone, how I (Yusuf O. Sholadoye) used an AI 
 - No `.env` secret appears in any output; the support user's password is random and never written down, and the user is dropped after the test.
 
 ---
+
+## M10: Distributed and cloud (11 Nov 2026)
+
+**My decisions:** a distributed and cloud design for OwoRail, backed by working clusters rather than description only; a three-node replica set for replication, failover and consistency; a small sharded cluster because sharding is required evidence; keeping all data under Nigerian control in the deployment design.
+
+**Design decisions (approved at review):**
+- Each cluster is its own Compose file; all nodes share one container's network namespace, so member addresses work both inside the cluster and from the host, and nodes can be killed without losing the network.
+- Failures are simulated with SIGKILL; a primary is isolated by killing both secondaries (pausing them was tried first and turned out not to isolate it, see below); a lagging secondary is simulated with `fsyncLock`.
+- `source.wallet` (hashed) as the shard key, with `created_at` (range) tested as the rejected alternative.
+- In the design, PostgreSQL stays the system of record with synchronous and asynchronous standbys, and MongoDB is the read model; the ledger chooses consistency under a partition.
+
+**AI assistance used:** generated the two Compose files, the replication, sharding, helper and pipeline scripts, and drafted the design, the setup guide and the Portfolio 5 README, to my specification.
+
+**How it was verified:**
+- Replica set 16 of 16 and sharded cluster 9 of 9 checks, from empty clusters; every pipeline step exited 0; no `.env` secret appears in any output.
+- Problems found and fixed: the localhost exception doesn't allow listing users, so user creation now just tries `createUser`; the first failover measurement reported a 0.0 s gap because it compared timestamps around the kill command instead of the longest gap between acknowledged writes; pausing the secondaries didn't isolate the primary (its writes were delivered from socket buffers when they resumed), so the rollback scenario now kills them; a stale-read scenario waited about 40 s on a member still catching up, so it now waits for a healthy set first.
+- The write-concern latencies vary between runs on one machine; the design presents them as an ordering, not as network figures.
+
+---

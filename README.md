@@ -97,7 +97,7 @@ Each portfolio folder has its own `README.md` explaining what was implemented, h
 | M5–M6 | P2: query workload, execution plans, indexing and optimisation | Done |
 | M7–M8 | P3: transactions (commit, rollback, savepoint), isolation and concurrency control | Done |
 | M9 | P4: MongoDB document model on the same case study | Done |
-| M10 | P5: distributed design and a three-node MongoDB replica set | Planned |
+| M10 | P5: distributed design and a three-node MongoDB replica set | Done |
 | M11 | Final documentation, fresh-run verification, LMS summary | Planned |
 
 ## 4. Technology stack
@@ -159,7 +159,7 @@ Completed portfolio by portfolio; finalised in M11.
 | Portfolio 2: query processing and optimisation | [portfolio-2-query-optimisation/README.md](portfolio-2-query-optimisation/README.md#required-evidence) (queries, results, plans, indexes, before/after analysis) |
 | Portfolio 3: transactions and concurrency | [portfolio-3-transactions-concurrency/README.md](portfolio-3-transactions-concurrency/README.md#required-evidence) (commit, rollback, isolation, locking timelines) |
 | Portfolio 4: NoSQL (MongoDB) | [portfolio-4-nosql/README.md](portfolio-4-nosql/README.md#required-evidence) (document model, validation, explain before/after, transactions, suitability) |
-| Portfolio 5 evidence | _added when the portfolio is completed_ |
+| Portfolio 5: distributed and cloud | [portfolio-5-distributed-cloud/README.md](portfolio-5-distributed-cloud/README.md#required-evidence) (replica set, failover, rollback, consistency, sharding, deployment design) |
 
 ## 7. Academic integrity and AI use
 

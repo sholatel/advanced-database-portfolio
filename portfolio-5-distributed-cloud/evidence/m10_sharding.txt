@@ -1,0 +1,54 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Sharding: hashed key, query targeting, hot spot, shard outage
+Captured at : 2026-11-11T08:04:40+01:00 (Africa/Lagos, WAT) | 2026-11-11T07:04:40Z (UTC)
+Command     : 'C:\Users\user\projects\advanced-database-portfolio\.venv\Scripts\python.exe' portfolio-5-distributed-cloud/scripts/sharding.py
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 166.726 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+================================================================================
+
+=== S0  Config server, two shards and a mongos router
+    49615 ms  sys  cfg (config, port 27031) is primary
+    71858 ms  sys  shardA (shard_a, port 27032) is primary
+    87331 ms  sys  shardB (shard_b, port 27033) is primary
+    94795 ms  sys  admin user on the cluster created
+| shard   | host                   |   state |
+|---------|------------------------|---------|
+| shardA  | shardA/127.0.0.1:27032 |       1 |
+| shardB  | shardB/127.0.0.1:27033 |       1 |
+    97628 ms  chk  PASS  two shards are registered with the router
+
+=== S1  transactions sharded on a hashed source wallet
+   117492 ms  sys  200,000 transactions inserted through mongos in 18.0 s
+   117548 ms  sys  documents per shard: {'shardA': 99490, 'shardB': 100510}; chunks per shard: {shardB: 2, shardA: 2}
+   117548 ms  chk  PASS  the hashed key spreads the data over both shards  (smaller shard holds 50%)
+| query                                              | plan at mongos   | shards asked   |
+|----------------------------------------------------|------------------|----------------|
+| one wallet's payments (shard key)                  | SINGLE_SHARD     | shardB         |
+| one wallet's incoming payments (not the shard key) | SHARD_MERGE      | shardA, shardB |
+| one day (not the shard key)                        | SHARD_MERGE      | shardA, shardB |
+   117570 ms  chk  PASS  a query on the shard key goes to one shard
+   117570 ms  chk  PASS  a query without the shard key is sent to every shard (scatter-gather)
+
+=== S2  A shard key that only grows: created_at
+   122801 ms  sys  May-October history, split at 1 August: {'shardA': 25137, 'shardB': 24863}
+| shard key              |   shardA |   shardB |
+|------------------------|----------|----------|
+| created_at (ranged)    |        0 |    10000 |
+| source.wallet (hashed) |     4928 |     5072 |
+   124782 ms  chk  PASS  with a ranged time key, every new write lands on one shard  ([0, 10000])
+   124782 ms  chk  PASS  with a hashed wallet key, new writes are shared  ([4928, 5072])
+
+=== S3  One shard is down
+   126032 ms  sys  docker compose stop shard_b
+   160228 ms  app  query for wallet 3100007225 (on shardA): 7
+   160229 ms  app  count over the whole collection: OperationFailure
+   160229 ms  app  the same scan with allowPartialResults: 104,418 documents (shardA only)
+   163287 ms  chk  PASS  queries that only need the healthy shard still work
+   163287 ms  chk  PASS  queries that need every shard fail
+   163287 ms  chk  PASS  a partial answer is possible if the application asks for it  (104,418)
+
+Sharded cluster: 9 of 9 checks passed

@@ -1,0 +1,262 @@
+{
+ "explainVersion": "1",
+ "stages": [
+  {
+   "$cursor": {
+    "queryPlanner": {
+     "namespace": "oworail.transactions",
+     "indexFilterSet": false,
+     "parsedQuery": {},
+     "queryHash": "48E01DA1",
+     "planCacheKey": "07664155",
+     "optimizationTimeMillis": 0,
+     "maxIndexedOrSolutionsReached": false,
+     "maxIndexedAndSolutionsReached": false,
+     "maxScansToExplodeReached": false,
+     "winningPlan": {
+      "stage": "PROJECTION_DEFAULT",
+      "transformBy": {
+       "entries": {
+        "wallet": true,
+        "type": true,
+        "amount": true
+       },
+       "_id": false
+      },
+      "inputStage": {
+       "stage": "COLLSCAN",
+       "direction": "forward"
+      }
+     },
+     "rejectedPlans": []
+    },
+    "executionStats": {
+     "executionSuccess": true,
+     "nReturned": 1101109,
+     "executionTimeMillis": 27832,
+     "totalKeysExamined": 0,
+     "totalDocsExamined": 1101109,
+     "executionStages": {
+      "stage": "PROJECTION_DEFAULT",
+      "nReturned": 1101109,
+      "executionTimeMillisEstimate": 1447,
+      "works": 1101110,
+      "advanced": 1101109,
+      "needTime": 0,
+      "needYield": 0,
+      "saveState": 1194,
+      "restoreState": 1194,
+      "isEOF": 1,
+      "transformBy": {
+       "entries": {
+        "wallet": true,
+        "type": true,
+        "amount": true
+       },
+       "_id": false
+      },
+      "inputStage": {
+       "stage": "COLLSCAN",
+       "nReturned": 1101109,
+       "executionTimeMillisEstimate": 686,
+       "works": 1101110,
+       "advanced": 1101109,
+       "needTime": 0,
+       "needYield": 0,
+       "saveState": 1194,
+       "restoreState": 1194,
+       "isEOF": 1,
+       "direction": "forward",
+       "docsExamined": 1101109
+      }
+     }
+    }
+   },
+   "nReturned": 1101109,
+   "executionTimeMillisEstimate": 4850
+  },
+  {
+   "$unwind": {
+    "path": "$entries"
+   },
+   "nReturned": 2870951,
+   "executionTimeMillisEstimate": 6339
+  },
+  {
+   "$group": {
+    "_id": "$entries.wallet",
+    "ledger": {
+     "$sum": {
+      "$cond": [
+       {
+        "$eq": [
+         "$entries.type",
+         {
+          "$const": "CREDIT"
+         }
+        ]
+       },
+       "$entries.amount",
+       {
+        "$multiply": [
+         "$entries.amount",
+         {
+          "$const": -1
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "maxAccumulatorMemoryUsageBytes": {
+    "ledger": 9792960
+   },
+   "totalOutputDataSizeBytes": 24992450,
+   "usedDisk": false,
+   "spills": 0,
+   "spilledDataStorageSize": 0,
+   "numBytesSpilledEstimate": 0,
+   "spilledRecords": 0,
+   "nReturned": 102010,
+   "executionTimeMillisEstimate": 11760
+  },
+  {
+   "$lookup": {
+    "from": "wallets",
+    "as": "w",
+    "localField": "_id",
+    "foreignField": "_id",
+    "unwinding": {
+     "preserveNullAndEmptyArrays": false
+    }
+   },
+   "totalDocsExamined": 102010,
+   "totalKeysExamined": 102010,
+   "collectionScans": 0,
+   "indexesUsed": [
+    "_id_"
+   ],
+   "nReturned": 102010,
+   "executionTimeMillisEstimate": 29498
+  },
+  {
+   "$match": {
+    "$expr": {
+     "$ne": [
+      "$ledger",
+      "$w.balance_kobo"
+     ]
+    }
+   },
+   "nReturned": 0,
+   "executionTimeMillisEstimate": 29514
+  },
+  {
+   "$project": {
+    "_id": true,
+    "ledger": true,
+    "stored": "$w.balance_kobo"
+   },
+   "nReturned": 0,
+   "executionTimeMillisEstimate": 29514
+  }
+ ],
+ "serverInfo": {
+  "host": "4f7edf739c1b",
+  "port": 27017,
+  "version": "7.0.45",
+  "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+ },
+ "serverParameters": {
+  "internalQueryFacetBufferSizeBytes": 104857600,
+  "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+  "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+  "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+  "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+  "internalQueryProhibitBlockingMergeOnMongoS": 0,
+  "internalQueryMaxAddToSetBytes": 104857600,
+  "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+  "internalQueryFrameworkControl": "forceClassicEngine"
+ },
+ "command": {
+  "aggregate": "transactions",
+  "pipeline": [
+   {
+    "$project": {
+     "_id": 0,
+     "entries.wallet": 1,
+     "entries.type": 1,
+     "entries.amount": 1
+    }
+   },
+   {
+    "$unwind": "$entries"
+   },
+   {
+    "$group": {
+     "_id": "$entries.wallet",
+     "ledger": {
+      "$sum": {
+       "$cond": [
+        {
+         "$eq": [
+          "$entries.type",
+          "CREDIT"
+         ]
+        },
+        "$entries.amount",
+        {
+         "$multiply": [
+          "$entries.amount",
+          -1
+         ]
+        }
+       ]
+      }
+     }
+    }
+   },
+   {
+    "$lookup": {
+     "from": "wallets",
+     "localField": "_id",
+     "foreignField": "_id",
+     "as": "w"
+    }
+   },
+   {
+    "$unwind": "$w"
+   },
+   {
+    "$match": {
+     "$expr": {
+      "$ne": [
+       "$ledger",
+       "$w.balance_kobo"
+      ]
+     }
+    }
+   },
+   {
+    "$project": {
+     "_id": 1,
+     "ledger": 1,
+     "stored": "$w.balance_kobo"
+    }
+   }
+  ],
+  "cursor": {},
+  "maxTimeMS": 120000,
+  "$db": "oworail"
+ },
+ "ok": 1.0,
+ "$clusterTime": {
+  "clusterTime": "Timestamp(1794375370, 1)",
+  "signature": {
+   "hash": "b'-\\xd7\\xe0\\xbf\\xd7\\xdb\\x06\\xf1\\xd3\\x88\\x9b*\\x03E\\xe7(p\\xe1py'",
+   "keyId": 7706771578003914758
+  }
+ },
+ "operationTime": "Timestamp(1794375370, 1)"
+}

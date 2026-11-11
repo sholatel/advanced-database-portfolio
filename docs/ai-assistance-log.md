@@ -147,3 +147,25 @@ This log records, milestone by milestone, how I (Yusuf O. Sholadoye) used an AI 
 - Every figure in the analysis was checked against the captured evidence; no `.env` secret appears in any output.
 
 ---
+
+## M9: NoSQL with MongoDB (11 Nov 2026)
+
+**My decisions:** model OwoRail as documents in MongoDB 7.0 starting from its access patterns; load the same data as Portfolios 1–2 from PostgreSQL instead of generating new data, so the two models can be compared directly; validate documents in the database; demonstrate a transfer as a multi-document transaction; finish with a suitability argument.
+
+**Design decisions (approved at review):**
+- Ledger entries, status history, phones, address and KYC are embedded; wallets are their own documents referenced by number; transactions copy the source and destination names for display (extended reference).
+- The `mongo` service now runs as a single-node replica set with a keyfile generated in the container, because MongoDB only supports multi-document transactions on a replica set. `docker-compose.yml` changed accordingly; the data volume was kept.
+- Validators use `$jsonSchema` plus `$expr` rules on the embedded arrays (balanced entries, status = last history entry); money must be a 64-bit integer.
+- Least privilege with embedded KYC is rebuilt with a view without `kyc` and a role limited to it.
+- Every query result is checked against the same query in PostgreSQL.
+- The reconciliation query (Q5) gets a 120-second limit instead of 30 seconds, because it takes about 31 s in MongoDB; this is reported as a finding, not hidden.
+
+**AI assistance used:** generated the schema, loader, query, validation, transaction and pipeline scripts, and drafted the document model, the suitability analysis and the Portfolio 4 README, to my specification.
+
+**How it was verified:**
+- Load: 4 of 4 checks (all 1,101,109 transactions, 2,870,951 entries and 2,203,316 history rows copied; balance totals equal to PostgreSQL).
+- Workload: 18 of 18 (each of the nine queries returns the same result before and after indexes and the same rows as PostgreSQL); validation 22 of 22; transactions 14 of 14.
+- Problems found and fixed: the first full run failed because Q5 exceeded the 30-second limit after indexing and the comparison code couldn't handle a timed-out phase; the "indexes used" column counted indexes from rejected plans; an all-NULL PostgreSQL row was compared with an empty MongoDB result; a test label named the wrong system wallet.
+- No `.env` secret appears in any output; the support user's password is random and never written down, and the user is dropped after the test.
+
+---

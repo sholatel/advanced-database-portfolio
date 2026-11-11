@@ -1,0 +1,214 @@
+{
+ "explainVersion": "1",
+ "stages": [
+  {
+   "$cursor": {
+    "queryPlanner": {
+     "namespace": "oworail.transactions",
+     "indexFilterSet": false,
+     "parsedQuery": {
+      "entries.wallet": {
+       "$eq": "3100000001"
+      }
+     },
+     "queryHash": "C8258383",
+     "planCacheKey": "C8258383",
+     "optimizationTimeMillis": 0,
+     "maxIndexedOrSolutionsReached": false,
+     "maxIndexedAndSolutionsReached": false,
+     "maxScansToExplodeReached": false,
+     "winningPlan": {
+      "stage": "PROJECTION_SIMPLE",
+      "transformBy": {
+       "_id": 1,
+       "created_at": 1,
+       "entries": 1,
+       "type": 1
+      },
+      "inputStage": {
+       "stage": "SORT",
+       "sortPattern": {
+        "created_at": -1,
+        "_id": -1
+       },
+       "memLimit": 104857600,
+       "limitAmount": 20,
+       "type": "simple",
+       "inputStage": {
+        "stage": "COLLSCAN",
+        "filter": {
+         "entries.wallet": {
+          "$eq": "3100000001"
+         }
+        },
+        "direction": "forward"
+       }
+      }
+     },
+     "rejectedPlans": []
+    },
+    "executionStats": {
+     "executionSuccess": true,
+     "nReturned": 20,
+     "executionTimeMillis": 2932,
+     "totalKeysExamined": 0,
+     "totalDocsExamined": 1101109,
+     "executionStages": {
+      "stage": "PROJECTION_SIMPLE",
+      "nReturned": 20,
+      "executionTimeMillisEstimate": 736,
+      "works": 1101131,
+      "advanced": 20,
+      "needTime": 1101110,
+      "needYield": 0,
+      "saveState": 1102,
+      "restoreState": 1102,
+      "isEOF": 1,
+      "transformBy": {
+       "_id": 1,
+       "created_at": 1,
+       "entries": 1,
+       "type": 1
+      },
+      "inputStage": {
+       "stage": "SORT",
+       "nReturned": 20,
+       "executionTimeMillisEstimate": 735,
+       "works": 1101131,
+       "advanced": 20,
+       "needTime": 1101110,
+       "needYield": 0,
+       "saveState": 1102,
+       "restoreState": 1102,
+       "isEOF": 1,
+       "sortPattern": {
+        "created_at": -1,
+        "_id": -1
+       },
+       "memLimit": 104857600,
+       "limitAmount": 20,
+       "type": "simple",
+       "totalDataSizeSorted": 16339,
+       "usedDisk": false,
+       "spills": 0,
+       "spilledDataStorageSize": 0,
+       "inputStage": {
+        "stage": "COLLSCAN",
+        "filter": {
+         "entries.wallet": {
+          "$eq": "3100000001"
+         }
+        },
+        "nReturned": 3046,
+        "executionTimeMillisEstimate": 731,
+        "works": 1101110,
+        "advanced": 3046,
+        "needTime": 1098063,
+        "needYield": 0,
+        "saveState": 1102,
+        "restoreState": 1102,
+        "isEOF": 1,
+        "direction": "forward",
+        "docsExamined": 1101109
+       }
+      }
+     }
+    }
+   },
+   "nReturned": 20,
+   "executionTimeMillisEstimate": 2930
+  },
+  {
+   "$unwind": {
+    "path": "$entries"
+   },
+   "nReturned": 53,
+   "executionTimeMillisEstimate": 2930
+  },
+  {
+   "$match": {
+    "entries.wallet": {
+     "$eq": "3100000001"
+    }
+   },
+   "nReturned": 20,
+   "executionTimeMillisEstimate": 2930
+  },
+  {
+   "$project": {
+    "_id": true,
+    "created_at": true,
+    "type": true,
+    "entry": "$entries.type",
+    "amount": "$entries.amount"
+   },
+   "nReturned": 20,
+   "executionTimeMillisEstimate": 2930
+  }
+ ],
+ "serverInfo": {
+  "host": "4f7edf739c1b",
+  "port": 27017,
+  "version": "7.0.45",
+  "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+ },
+ "serverParameters": {
+  "internalQueryFacetBufferSizeBytes": 104857600,
+  "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+  "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+  "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+  "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+  "internalQueryProhibitBlockingMergeOnMongoS": 0,
+  "internalQueryMaxAddToSetBytes": 104857600,
+  "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+  "internalQueryFrameworkControl": "forceClassicEngine"
+ },
+ "command": {
+  "aggregate": "transactions",
+  "pipeline": [
+   {
+    "$match": {
+     "entries.wallet": "3100000001"
+    }
+   },
+   {
+    "$sort": {
+     "created_at": -1,
+     "_id": -1
+    }
+   },
+   {
+    "$limit": 20
+   },
+   {
+    "$unwind": "$entries"
+   },
+   {
+    "$match": {
+     "entries.wallet": "3100000001"
+    }
+   },
+   {
+    "$project": {
+     "_id": 1,
+     "created_at": 1,
+     "type": 1,
+     "entry": "$entries.type",
+     "amount": "$entries.amount"
+    }
+   }
+  ],
+  "cursor": {},
+  "maxTimeMS": 30000,
+  "$db": "oworail"
+ },
+ "ok": 1.0,
+ "$clusterTime": {
+  "clusterTime": "Timestamp(1794374829, 4)",
+  "signature": {
+   "hash": "b'\\xfa}\\x1c#1\\xe8<\\xbc\\x13lp\\xee\\rbXe\\xe0\\xd8\\x82:'",
+   "keyId": 7706771578003914758
+  }
+ },
+ "operationTime": "Timestamp(1794374829, 1)"
+}

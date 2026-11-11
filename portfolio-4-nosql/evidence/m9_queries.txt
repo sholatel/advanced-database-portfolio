@@ -1,0 +1,68 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Workload before and after indexes, checked against PostgreSQL
+Captured at : 2026-11-11T06:26:49+01:00 (Africa/Lagos, WAT) | 2026-11-11T05:26:49Z (UTC)
+Command     : 'C:\Users\user\projects\advanced-database-portfolio\.venv\Scripts\python.exe' portfolio-4-nosql/scripts/queries.py
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 593.920 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : db version v7.0.45  [service 'mongo' in docker-compose.yml]
+================================================================================
+
+=== Workload: before
+  Q1       79.14 ms  docs 102013  keys 1  COLLSCAN  uq_customers_phones
+  Q2     2357.21 ms  docs 1101109  keys 0  COLLSCAN  -
+  Q3        3.01 ms  docs 1  keys 1  IXSCAN  -
+  Q4     1797.66 ms  docs 1101109  keys 0  COLLSCAN  -
+  Q5    34061.28 ms  docs 1203119  keys 102010  COLLSCAN  -
+  Q6     2306.23 ms  docs 1101109  keys 0  COLLSCAN  -
+  Q7     3110.47 ms  docs 1103109  keys 2000  COLLSCAN  -
+  Q8     1990.81 ms  docs 1101109  keys 0  COLLSCAN  -
+  Q9        TIMEOUT  docs None  keys None  COLLSCAN  -
+
+=== Workload: after
+  Q1        3.15 ms  docs 2  keys 2  IXSCAN  uq_customers_phones
+  Q2        2.86 ms  docs 20  keys 20  IXSCAN  ix_transactions_entry_wallet_created
+  Q3         2.8 ms  docs 1  keys 1  IXSCAN  -
+  Q4        2.66 ms  docs 20  keys 20  IXSCAN  ix_transactions_source_created
+  Q5    30890.35 ms  docs 1203119  keys 102010  COLLSCAN  -
+  Q6       54.64 ms  docs 5562  keys 5562  IXSCAN  ix_transactions_created
+  Q7      555.47 ms  docs 67282  keys 67285  IXSCAN  ix_transactions_status_type_created
+  Q8       13.76 ms  docs 1151  keys 1151  IXSCAN  ix_transactions_failed_created
+  Q9      645.64 ms  docs 29928  keys 29928  IXSCAN  ix_wallets_balance
+
+=== Results compared
+  PASS  Q1 same result before and after indexes
+  PASS  Q1 same result as PostgreSQL (1 rows)
+  PASS  Q2 same result before and after indexes
+  PASS  Q2 same result as PostgreSQL (20 rows)
+  PASS  Q3 same result before and after indexes
+  PASS  Q3 same result as PostgreSQL (3 rows)
+  PASS  Q4 same result before and after indexes
+  PASS  Q4 same result as PostgreSQL (1 rows)
+  PASS  Q5 same result before and after indexes
+  PASS  Q5 same result as PostgreSQL (0 rows)
+  PASS  Q6 same result before and after indexes
+  PASS  Q6 same result as PostgreSQL (6 rows)
+  PASS  Q7 same result before and after indexes
+  PASS  Q7 same result as PostgreSQL (2000 rows)
+  PASS  Q8 same result before and after indexes
+  PASS  Q8 same result as PostgreSQL (6 rows)
+  PASS  Q9 same result before and after indexes
+  PASS  Q9 same result as PostgreSQL (50 rows)
+
+| query   | title                                                           | before ms   |   after ms | docs examined before   |   docs examined after |   keys examined after | plan                 | speed-up   |
+|---------|-----------------------------------------------------------------|-------------|------------|------------------------|-----------------------|-----------------------|----------------------|------------|
+| Q1      | customer and wallets by phone                                   | 79.14       |       3.15 | 102013                 |                     2 |                     2 | COLLSCAN -> IXSCAN   | 25.1x      |
+| Q2      | statement: 20 latest entries of the busiest wallet              | 2357.21     |       2.86 | 1101109                |                    20 |                    20 | COLLSCAN -> IXSCAN   | 824.2x     |
+| Q3      | transaction with its status history by reference                | 3.01        |       2.8  | 1                      |                     1 |                     1 | IXSCAN -> IXSCAN     | 1.1x       |
+| Q4      | amount sent today by the busiest wallet (KYC limit)             | 1797.66     |       2.66 | 1101109                |                    20 |                    20 | COLLSCAN -> IXSCAN   | 675.8x     |
+| Q5      | reconcile stored balances against the entries                   | 34061.28    |   30890.3  | 1203119                |               1203119 |                102010 | COLLSCAN -> COLLSCAN | 1.1x       |
+| Q6      | wallets with 5+ outgoing payments in one day                    | 2306.23     |      54.64 | 1101109                |                  5562 |                  5562 | COLLSCAN -> IXSCAN   | 42.2x      |
+| Q7      | October settlement per merchant and biller                      | 3110.47     |     555.47 | 1103109                |                 67282 |                 67285 | COLLSCAN -> IXSCAN   | 5.6x       |
+| Q8      | failed transactions in the last 7 days by channel and reason    | 1990.81     |      13.76 | 1101109                |                  1151 |                  1151 | COLLSCAN -> IXSCAN   | 144.7x     |
+| Q9      | 50 largest customer wallets with no outgoing payment in 90 days | timeout     |     645.64 | -                      |                 29928 |                 29928 | COLLSCAN -> IXSCAN   | >46x       |
+
+MongoDB workload: 18 of 18 checks passed

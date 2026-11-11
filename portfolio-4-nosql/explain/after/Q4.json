@@ -1,0 +1,401 @@
+{
+ "explainVersion": "1",
+ "stages": [
+  {
+   "$cursor": {
+    "queryPlanner": {
+     "namespace": "oworail.transactions",
+     "indexFilterSet": false,
+     "parsedQuery": {
+      "$and": [
+       {
+        "source.wallet": {
+         "$eq": "3100000001"
+        }
+       },
+       {
+        "status": {
+         "$eq": "SUCCESSFUL"
+        }
+       },
+       {
+        "created_at": {
+         "$lt": "2026-10-31 00:00:00"
+        }
+       },
+       {
+        "created_at": {
+         "$gte": "2026-10-30 00:00:00"
+        }
+       },
+       {
+        "type": {
+         "$not": {
+          "$eq": "REVERSAL"
+         }
+        }
+       }
+      ]
+     },
+     "queryHash": "D298659B",
+     "planCacheKey": "081F5415",
+     "optimizationTimeMillis": 0,
+     "maxIndexedOrSolutionsReached": false,
+     "maxIndexedAndSolutionsReached": false,
+     "maxScansToExplodeReached": false,
+     "winningPlan": {
+      "stage": "PROJECTION_SIMPLE",
+      "transformBy": {
+       "amount_kobo": 1,
+       "fee_kobo": 1,
+       "_id": 0
+      },
+      "inputStage": {
+       "stage": "FETCH",
+       "filter": {
+        "$and": [
+         {
+          "type": {
+           "$not": {
+            "$eq": "REVERSAL"
+           }
+          }
+         },
+         {
+          "status": {
+           "$eq": "SUCCESSFUL"
+          }
+         }
+        ]
+       },
+       "inputStage": {
+        "stage": "IXSCAN",
+        "keyPattern": {
+         "source.wallet": 1,
+         "created_at": 1
+        },
+        "indexName": "ix_transactions_source_created",
+        "isMultiKey": false,
+        "multiKeyPaths": {
+         "source.wallet": [],
+         "created_at": []
+        },
+        "isUnique": false,
+        "isSparse": false,
+        "isPartial": false,
+        "indexVersion": 2,
+        "direction": "forward",
+        "indexBounds": {
+         "source.wallet": [
+          "[\"3100000001\", \"3100000001\"]"
+         ],
+         "created_at": [
+          "[new Date(1793318400000), new Date(1793404800000))"
+         ]
+        }
+       }
+      }
+     },
+     "rejectedPlans": [
+      {
+       "stage": "PROJECTION_SIMPLE",
+       "transformBy": {
+        "amount_kobo": 1,
+        "fee_kobo": 1,
+        "_id": 0
+       },
+       "inputStage": {
+        "stage": "FETCH",
+        "filter": {
+         "$and": [
+          {
+           "type": {
+            "$not": {
+             "$eq": "REVERSAL"
+            }
+           }
+          },
+          {
+           "source.wallet": {
+            "$eq": "3100000001"
+           }
+          },
+          {
+           "status": {
+            "$eq": "SUCCESSFUL"
+           }
+          }
+         ]
+        },
+        "inputStage": {
+         "stage": "IXSCAN",
+         "keyPattern": {
+          "created_at": 1
+         },
+         "indexName": "ix_transactions_created",
+         "isMultiKey": false,
+         "multiKeyPaths": {
+          "created_at": []
+         },
+         "isUnique": false,
+         "isSparse": false,
+         "isPartial": false,
+         "indexVersion": 2,
+         "direction": "forward",
+         "indexBounds": {
+          "created_at": [
+           "[new Date(1793318400000), new Date(1793404800000))"
+          ]
+         }
+        }
+       }
+      },
+      {
+       "stage": "PROJECTION_SIMPLE",
+       "transformBy": {
+        "amount_kobo": 1,
+        "fee_kobo": 1,
+        "_id": 0
+       },
+       "inputStage": {
+        "stage": "FETCH",
+        "filter": {
+         "source.wallet": {
+          "$eq": "3100000001"
+         }
+        },
+        "inputStage": {
+         "stage": "IXSCAN",
+         "keyPattern": {
+          "status": 1,
+          "type": 1,
+          "created_at": 1
+         },
+         "indexName": "ix_transactions_status_type_created",
+         "isMultiKey": false,
+         "multiKeyPaths": {
+          "status": [],
+          "type": [],
+          "created_at": []
+         },
+         "isUnique": false,
+         "isSparse": false,
+         "isPartial": false,
+         "indexVersion": 2,
+         "direction": "forward",
+         "indexBounds": {
+          "status": [
+           "[\"SUCCESSFUL\", \"SUCCESSFUL\"]"
+          ],
+          "type": [
+           "[MinKey, \"REVERSAL\")",
+           "(\"REVERSAL\", MaxKey]"
+          ],
+          "created_at": [
+           "[new Date(1793318400000), new Date(1793404800000))"
+          ]
+         }
+        }
+       }
+      }
+     ]
+    },
+    "executionStats": {
+     "executionSuccess": true,
+     "nReturned": 20,
+     "executionTimeMillis": 0,
+     "totalKeysExamined": 20,
+     "totalDocsExamined": 20,
+     "executionStages": {
+      "stage": "PROJECTION_SIMPLE",
+      "nReturned": 20,
+      "executionTimeMillisEstimate": 0,
+      "works": 22,
+      "advanced": 20,
+      "needTime": 0,
+      "needYield": 0,
+      "saveState": 1,
+      "restoreState": 1,
+      "isEOF": 1,
+      "transformBy": {
+       "amount_kobo": 1,
+       "fee_kobo": 1,
+       "_id": 0
+      },
+      "inputStage": {
+       "stage": "FETCH",
+       "filter": {
+        "$and": [
+         {
+          "type": {
+           "$not": {
+            "$eq": "REVERSAL"
+           }
+          }
+         },
+         {
+          "status": {
+           "$eq": "SUCCESSFUL"
+          }
+         }
+        ]
+       },
+       "nReturned": 20,
+       "executionTimeMillisEstimate": 0,
+       "works": 22,
+       "advanced": 20,
+       "needTime": 0,
+       "needYield": 0,
+       "saveState": 1,
+       "restoreState": 1,
+       "isEOF": 1,
+       "docsExamined": 20,
+       "alreadyHasObj": 0,
+       "inputStage": {
+        "stage": "IXSCAN",
+        "nReturned": 20,
+        "executionTimeMillisEstimate": 0,
+        "works": 21,
+        "advanced": 20,
+        "needTime": 0,
+        "needYield": 0,
+        "saveState": 1,
+        "restoreState": 1,
+        "isEOF": 1,
+        "keyPattern": {
+         "source.wallet": 1,
+         "created_at": 1
+        },
+        "indexName": "ix_transactions_source_created",
+        "isMultiKey": false,
+        "multiKeyPaths": {
+         "source.wallet": [],
+         "created_at": []
+        },
+        "isUnique": false,
+        "isSparse": false,
+        "isPartial": false,
+        "indexVersion": 2,
+        "direction": "forward",
+        "indexBounds": {
+         "source.wallet": [
+          "[\"3100000001\", \"3100000001\"]"
+         ],
+         "created_at": [
+          "[new Date(1793318400000), new Date(1793404800000))"
+         ]
+        },
+        "keysExamined": 20,
+        "seeks": 1,
+        "dupsTested": 0,
+        "dupsDropped": 0
+       }
+      }
+     }
+    }
+   },
+   "nReturned": 20,
+   "executionTimeMillisEstimate": 0
+  },
+  {
+   "$group": {
+    "_id": {
+     "$const": null
+    },
+    "sent": {
+     "$sum": {
+      "$add": [
+       "$amount_kobo",
+       "$fee_kobo"
+      ]
+     }
+    }
+   },
+   "maxAccumulatorMemoryUsageBytes": {
+    "sent": 96
+   },
+   "totalOutputDataSizeBytes": 245,
+   "usedDisk": false,
+   "spills": 0,
+   "spilledDataStorageSize": 0,
+   "numBytesSpilledEstimate": 0,
+   "spilledRecords": 0,
+   "nReturned": 1,
+   "executionTimeMillisEstimate": 0
+  },
+  {
+   "$project": {
+    "sent": true,
+    "_id": false
+   },
+   "nReturned": 1,
+   "executionTimeMillisEstimate": 0
+  }
+ ],
+ "serverInfo": {
+  "host": "4f7edf739c1b",
+  "port": 27017,
+  "version": "7.0.45",
+  "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+ },
+ "serverParameters": {
+  "internalQueryFacetBufferSizeBytes": 104857600,
+  "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+  "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+  "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+  "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+  "internalQueryProhibitBlockingMergeOnMongoS": 0,
+  "internalQueryMaxAddToSetBytes": 104857600,
+  "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+  "internalQueryFrameworkControl": "forceClassicEngine"
+ },
+ "command": {
+  "aggregate": "transactions",
+  "pipeline": [
+   {
+    "$match": {
+     "source.wallet": "3100000001",
+     "status": "SUCCESSFUL",
+     "type": {
+      "$ne": "REVERSAL"
+     },
+     "created_at": {
+      "$gte": "2026-10-30 00:00:00",
+      "$lt": "2026-10-31 00:00:00"
+     }
+    }
+   },
+   {
+    "$group": {
+     "_id": null,
+     "sent": {
+      "$sum": {
+       "$add": [
+        "$amount_kobo",
+        "$fee_kobo"
+       ]
+      }
+     }
+    }
+   },
+   {
+    "$project": {
+     "_id": 0,
+     "sent": 1
+    }
+   }
+  ],
+  "cursor": {},
+  "maxTimeMS": 30000,
+  "$db": "oworail"
+ },
+ "ok": 1.0,
+ "$clusterTime": {
+  "clusterTime": "Timestamp(1794375160, 3)",
+  "signature": {
+   "hash": "b'\\xde\\xab8\\xb3\\x8f\\xe4-\\xc3#\\x0e\\r\\xdcS\\x7f\\x03\\x0c\\x8f\\x84@m'",
+   "keyId": 7706771578003914758
+  }
+ },
+ "operationTime": "Timestamp(1794375160, 3)"
+}

@@ -1,0 +1,238 @@
+{
+ "explainVersion": "1",
+ "stages": [
+  {
+   "$cursor": {
+    "queryPlanner": {
+     "namespace": "oworail.customers",
+     "indexFilterSet": false,
+     "parsedQuery": {
+      "phones": {
+       "$eq": "+2349000013424"
+      }
+     },
+     "queryHash": "48590DC5",
+     "planCacheKey": "625F8641",
+     "optimizationTimeMillis": 0,
+     "maxIndexedOrSolutionsReached": false,
+     "maxIndexedAndSolutionsReached": false,
+     "maxScansToExplodeReached": false,
+     "winningPlan": {
+      "stage": "PROJECTION_SIMPLE",
+      "transformBy": {
+       "_id": 1,
+       "full_name": 1
+      },
+      "inputStage": {
+       "stage": "FETCH",
+       "inputStage": {
+        "stage": "IXSCAN",
+        "keyPattern": {
+         "phones": 1
+        },
+        "indexName": "uq_customers_phones",
+        "isMultiKey": true,
+        "multiKeyPaths": {
+         "phones": [
+          "phones"
+         ]
+        },
+        "isUnique": true,
+        "isSparse": false,
+        "isPartial": false,
+        "indexVersion": 2,
+        "direction": "forward",
+        "indexBounds": {
+         "phones": [
+          "[\"+2349000013424\", \"+2349000013424\"]"
+         ]
+        }
+       }
+      }
+     },
+     "rejectedPlans": []
+    },
+    "executionStats": {
+     "executionSuccess": true,
+     "nReturned": 1,
+     "executionTimeMillis": 62,
+     "totalKeysExamined": 1,
+     "totalDocsExamined": 1,
+     "executionStages": {
+      "stage": "PROJECTION_SIMPLE",
+      "nReturned": 1,
+      "executionTimeMillisEstimate": 0,
+      "works": 2,
+      "advanced": 1,
+      "needTime": 0,
+      "needYield": 0,
+      "saveState": 1,
+      "restoreState": 1,
+      "isEOF": 1,
+      "transformBy": {
+       "_id": 1,
+       "full_name": 1
+      },
+      "inputStage": {
+       "stage": "FETCH",
+       "nReturned": 1,
+       "executionTimeMillisEstimate": 0,
+       "works": 2,
+       "advanced": 1,
+       "needTime": 0,
+       "needYield": 0,
+       "saveState": 1,
+       "restoreState": 1,
+       "isEOF": 1,
+       "docsExamined": 1,
+       "alreadyHasObj": 0,
+       "inputStage": {
+        "stage": "IXSCAN",
+        "nReturned": 1,
+        "executionTimeMillisEstimate": 0,
+        "works": 2,
+        "advanced": 1,
+        "needTime": 0,
+        "needYield": 0,
+        "saveState": 1,
+        "restoreState": 1,
+        "isEOF": 1,
+        "keyPattern": {
+         "phones": 1
+        },
+        "indexName": "uq_customers_phones",
+        "isMultiKey": true,
+        "multiKeyPaths": {
+         "phones": [
+          "phones"
+         ]
+        },
+        "isUnique": true,
+        "isSparse": false,
+        "isPartial": false,
+        "indexVersion": 2,
+        "direction": "forward",
+        "indexBounds": {
+         "phones": [
+          "[\"+2349000013424\", \"+2349000013424\"]"
+         ]
+        },
+        "keysExamined": 1,
+        "seeks": 1,
+        "dupsTested": 1,
+        "dupsDropped": 0
+       }
+      }
+     }
+    }
+   },
+   "nReturned": 1,
+   "executionTimeMillisEstimate": 0
+  },
+  {
+   "$lookup": {
+    "from": "wallets",
+    "as": "wallets",
+    "localField": "_id",
+    "foreignField": "owner.customer_id",
+    "unwinding": {
+     "preserveNullAndEmptyArrays": false
+    }
+   },
+   "totalDocsExamined": 102012,
+   "totalKeysExamined": 0,
+   "collectionScans": 1,
+   "indexesUsed": [],
+   "nReturned": 1,
+   "executionTimeMillisEstimate": 62
+  },
+  {
+   "$project": {
+    "full_name": true,
+    "customer_id": "$_id",
+    "wallet": "$wallets._id",
+    "balance": "$wallets.balance_kobo",
+    "_id": false
+   },
+   "nReturned": 1,
+   "executionTimeMillisEstimate": 62
+  },
+  {
+   "$sort": {
+    "sortKey": {
+     "wallet": 1
+    }
+   },
+   "totalDataSizeSortedBytesEstimate": 348,
+   "usedDisk": false,
+   "spills": 0,
+   "spilledDataStorageSize": 0,
+   "nReturned": 1,
+   "executionTimeMillisEstimate": 62
+  }
+ ],
+ "serverInfo": {
+  "host": "4f7edf739c1b",
+  "port": 27017,
+  "version": "7.0.45",
+  "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+ },
+ "serverParameters": {
+  "internalQueryFacetBufferSizeBytes": 104857600,
+  "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+  "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+  "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+  "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+  "internalQueryProhibitBlockingMergeOnMongoS": 0,
+  "internalQueryMaxAddToSetBytes": 104857600,
+  "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+  "internalQueryFrameworkControl": "forceClassicEngine"
+ },
+ "command": {
+  "aggregate": "customers",
+  "pipeline": [
+   {
+    "$match": {
+     "phones": "+2349000013424"
+    }
+   },
+   {
+    "$lookup": {
+     "from": "wallets",
+     "localField": "_id",
+     "foreignField": "owner.customer_id",
+     "as": "wallets"
+    }
+   },
+   {
+    "$unwind": "$wallets"
+   },
+   {
+    "$project": {
+     "_id": 0,
+     "customer_id": "$_id",
+     "full_name": 1,
+     "wallet": "$wallets._id",
+     "balance": "$wallets.balance_kobo"
+    }
+   },
+   {
+    "$sort": {
+     "wallet": 1
+    }
+   }
+  ],
+  "cursor": {},
+  "maxTimeMS": 30000,
+  "$db": "oworail"
+ },
+ "ok": 1.0,
+ "$clusterTime": {
+  "clusterTime": "Timestamp(1794374811, 7)",
+  "signature": {
+   "hash": "b'\\x01\\x88G\\x9bw\\x8f=2\\x89\\xc3\\x16\\xa4\\x08\\\\q\\xcb\\x1e\\xea\\x01\\xbf'",
+   "keyId": 7706771578003914758
+  }
+ },
+ "operationTime": "Timestamp(1794374811, 7)"
+}

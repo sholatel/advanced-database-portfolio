@@ -1,0 +1,45 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Schema validation, unique indexes and a least-privilege view
+Captured at : 2026-11-11T06:36:47+01:00 (Africa/Lagos, WAT) | 2026-11-11T05:36:47Z (UTC)
+Command     : 'C:\Users\user\projects\advanced-database-portfolio\.venv\Scripts\python.exe' portfolio-4-nosql/scripts/validation.py
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 5.797 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : db version v7.0.45  [service 'mongo' in docker-compose.yml]
+================================================================================
+
+=== Documents that must be rejected
+  PASS  customer with a real-looking (non-999) BVN  (rejected by validator)
+  PASS  customer phone not in +234 mobile format  (rejected by validator)
+  PASS  customer email with capitals  (rejected by validator)
+  PASS  customer with a field the schema doesn't allow  (rejected by validator)
+  PASS  customer whose phone belongs to someone else  (duplicate key (phones))
+  PASS  transaction whose debits and credits differ  (rejected by validator)
+  PASS  SUCCESSFUL transaction with no entries  (rejected by validator)
+  PASS  FAILED transaction that still has entries  (rejected by validator)
+  PASS  status different from the last history entry  (rejected by validator)
+  PASS  bill payment without a bill reference  (rejected by validator)
+  PASS  amount stored as a 32-bit int instead of a long  (rejected by validator)
+  PASS  sending to the same wallet  (rejected by validator)
+  PASS  customer wallet below zero  (rejected by validator)
+  PASS  customer wallet owned by a merchant  (rejected by validator)
+
+=== Valid documents and updates
+  PASS  a valid customer is accepted
+  PASS  a valid, balanced transaction is accepted
+  PASS  the same idempotency key again is refused
+  PASS  updates are validated too: a customer balance can't be set below zero
+  PASS  a SYSTEM wallet may go below zero (SUSPENSE)
+
+  why the unbalanced transaction failed (MongoDB's errInfo):
+    {'operatorName': '$and', 'clausesNotSatisfied': [{'index': 1, 'details': {'operatorName': '$expr', 'specifiedAs': {'$expr': {'$and': [{'$ne': ['$source.wallet', '$destination.wallet']}, {'$eq': [{'$sum': {'$map': {'input': {'$filter': {'input': '$entries', 'cond': {'$eq': ['$$this.type', 'DEBIT']}}}
+
+=== Least privilege with embedded KYC data
+  PASS  the support user can't read the customers collection (KYC inside)
+  PASS  the support user reads customers through a view without KYC  (_id, address, created_at, date_of_birth, email, full_name, phones, status)
+  PASS  the support user can't write
+
+Validation: 22 of 22 checks passed

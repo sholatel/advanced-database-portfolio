@@ -1,0 +1,151 @@
+{
+ "explainVersion": "1",
+ "stages": [
+  {
+   "$cursor": {
+    "queryPlanner": {
+     "namespace": "oworail.transactions",
+     "indexFilterSet": false,
+     "parsedQuery": {
+      "_id": {
+       "$eq": "OWR100000470468"
+      }
+     },
+     "queryHash": "680E9127",
+     "planCacheKey": "546D7871",
+     "optimizationTimeMillis": 0,
+     "maxIndexedOrSolutionsReached": false,
+     "maxIndexedAndSolutionsReached": false,
+     "maxScansToExplodeReached": false,
+     "winningPlan": {
+      "stage": "PROJECTION_SIMPLE",
+      "transformBy": {
+       "_id": 1,
+       "amount_kobo": 1,
+       "history": 1,
+       "status": 1,
+       "type": 1
+      },
+      "inputStage": {
+       "stage": "IDHACK"
+      }
+     },
+     "rejectedPlans": []
+    },
+    "executionStats": {
+     "executionSuccess": true,
+     "nReturned": 1,
+     "executionTimeMillis": 0,
+     "totalKeysExamined": 1,
+     "totalDocsExamined": 1,
+     "executionStages": {
+      "stage": "PROJECTION_SIMPLE",
+      "nReturned": 1,
+      "executionTimeMillisEstimate": 0,
+      "works": 2,
+      "advanced": 1,
+      "needTime": 0,
+      "needYield": 0,
+      "saveState": 1,
+      "restoreState": 1,
+      "isEOF": 1,
+      "transformBy": {
+       "_id": 1,
+       "amount_kobo": 1,
+       "history": 1,
+       "status": 1,
+       "type": 1
+      },
+      "inputStage": {
+       "stage": "IDHACK",
+       "nReturned": 1,
+       "executionTimeMillisEstimate": 0,
+       "works": 2,
+       "advanced": 1,
+       "needTime": 0,
+       "needYield": 0,
+       "saveState": 1,
+       "restoreState": 1,
+       "isEOF": 1,
+       "keysExamined": 1,
+       "docsExamined": 1
+      }
+     }
+    }
+   },
+   "nReturned": 1,
+   "executionTimeMillisEstimate": 0
+  },
+  {
+   "$unwind": {
+    "path": "$history"
+   },
+   "nReturned": 3,
+   "executionTimeMillisEstimate": 0
+  },
+  {
+   "$project": {
+    "_id": true,
+    "type": true,
+    "amount_kobo": true,
+    "status": true,
+    "seq": "$history.seq",
+    "history_status": "$history.status"
+   },
+   "nReturned": 3,
+   "executionTimeMillisEstimate": 0
+  }
+ ],
+ "serverInfo": {
+  "host": "4f7edf739c1b",
+  "port": 27017,
+  "version": "7.0.45",
+  "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+ },
+ "serverParameters": {
+  "internalQueryFacetBufferSizeBytes": 104857600,
+  "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+  "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+  "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+  "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+  "internalQueryProhibitBlockingMergeOnMongoS": 0,
+  "internalQueryMaxAddToSetBytes": 104857600,
+  "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+  "internalQueryFrameworkControl": "forceClassicEngine"
+ },
+ "command": {
+  "aggregate": "transactions",
+  "pipeline": [
+   {
+    "$match": {
+     "_id": "OWR100000470468"
+    }
+   },
+   {
+    "$unwind": "$history"
+   },
+   {
+    "$project": {
+     "_id": 1,
+     "type": 1,
+     "amount_kobo": 1,
+     "status": 1,
+     "seq": "$history.seq",
+     "history_status": "$history.status"
+    }
+   }
+  ],
+  "cursor": {},
+  "maxTimeMS": 30000,
+  "$db": "oworail"
+ },
+ "ok": 1.0,
+ "$clusterTime": {
+  "clusterTime": "Timestamp(1794374829, 4)",
+  "signature": {
+   "hash": "b'\\xfa}\\x1c#1\\xe8<\\xbc\\x13lp\\xee\\rbXe\\xe0\\xd8\\x82:'",
+   "keyId": 7706771578003914758
+  }
+ },
+ "operationTime": "Timestamp(1794374829, 1)"
+}

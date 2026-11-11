@@ -1,0 +1,233 @@
+{
+ "explainVersion": "1",
+ "stages": [
+  {
+   "$cursor": {
+    "queryPlanner": {
+     "namespace": "oworail.transactions",
+     "indexFilterSet": false,
+     "parsedQuery": {
+      "$and": [
+       {
+        "status": {
+         "$eq": "FAILED"
+        }
+       },
+       {
+        "created_at": {
+         "$lt": "2026-10-31 00:00:00"
+        }
+       },
+       {
+        "created_at": {
+         "$gte": "2026-10-24 00:00:00"
+        }
+       }
+      ]
+     },
+     "queryHash": "345AE74C",
+     "planCacheKey": "345AE74C",
+     "optimizationTimeMillis": 0,
+     "maxIndexedOrSolutionsReached": false,
+     "maxIndexedAndSolutionsReached": false,
+     "maxScansToExplodeReached": false,
+     "winningPlan": {
+      "stage": "PROJECTION_DEFAULT",
+      "transformBy": {
+       "channel": 1,
+       "history.reason": 1,
+       "_id": 0
+      },
+      "inputStage": {
+       "stage": "COLLSCAN",
+       "filter": {
+        "$and": [
+         {
+          "status": {
+           "$eq": "FAILED"
+          }
+         },
+         {
+          "created_at": {
+           "$lt": "2026-10-31 00:00:00"
+          }
+         },
+         {
+          "created_at": {
+           "$gte": "2026-10-24 00:00:00"
+          }
+         }
+        ]
+       },
+       "direction": "forward"
+      }
+     },
+     "rejectedPlans": []
+    },
+    "executionStats": {
+     "executionSuccess": true,
+     "nReturned": 1151,
+     "executionTimeMillis": 2873,
+     "totalKeysExamined": 0,
+     "totalDocsExamined": 1101109,
+     "executionStages": {
+      "stage": "PROJECTION_DEFAULT",
+      "nReturned": 1151,
+      "executionTimeMillisEstimate": 700,
+      "works": 1101110,
+      "advanced": 1151,
+      "needTime": 1099958,
+      "needYield": 0,
+      "saveState": 1103,
+      "restoreState": 1103,
+      "isEOF": 1,
+      "transformBy": {
+       "channel": 1,
+       "history.reason": 1,
+       "_id": 0
+      },
+      "inputStage": {
+       "stage": "COLLSCAN",
+       "filter": {
+        "$and": [
+         {
+          "status": {
+           "$eq": "FAILED"
+          }
+         },
+         {
+          "created_at": {
+           "$lt": "2026-10-31 00:00:00"
+          }
+         },
+         {
+          "created_at": {
+           "$gte": "2026-10-24 00:00:00"
+          }
+         }
+        ]
+       },
+       "nReturned": 1151,
+       "executionTimeMillisEstimate": 688,
+       "works": 1101110,
+       "advanced": 1151,
+       "needTime": 1099958,
+       "needYield": 0,
+       "saveState": 1103,
+       "restoreState": 1103,
+       "isEOF": 1,
+       "direction": "forward",
+       "docsExamined": 1101109
+      }
+     }
+    }
+   },
+   "nReturned": 1151,
+   "executionTimeMillisEstimate": 2864
+  },
+  {
+   "$group": {
+    "_id": {
+     "channel": "$channel",
+     "reason": {
+      "$last": [
+       "$history.reason"
+      ]
+     }
+    },
+    "failures": {
+     "$sum": {
+      "$const": 1
+     }
+    }
+   },
+   "maxAccumulatorMemoryUsageBytes": {
+    "failures": 576
+   },
+   "totalOutputDataSizeBytes": 3150,
+   "usedDisk": false,
+   "spills": 0,
+   "spilledDataStorageSize": 0,
+   "numBytesSpilledEstimate": 0,
+   "spilledRecords": 0,
+   "nReturned": 6,
+   "executionTimeMillisEstimate": 2871
+  },
+  {
+   "$sort": {
+    "sortKey": {
+     "failures": -1,
+     "_id.channel": 1
+    }
+   },
+   "totalDataSizeSortedBytesEstimate": 3630,
+   "usedDisk": false,
+   "spills": 0,
+   "spilledDataStorageSize": 0,
+   "nReturned": 6,
+   "executionTimeMillisEstimate": 2871
+  }
+ ],
+ "serverInfo": {
+  "host": "4f7edf739c1b",
+  "port": 27017,
+  "version": "7.0.45",
+  "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+ },
+ "serverParameters": {
+  "internalQueryFacetBufferSizeBytes": 104857600,
+  "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+  "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+  "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+  "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+  "internalQueryProhibitBlockingMergeOnMongoS": 0,
+  "internalQueryMaxAddToSetBytes": 104857600,
+  "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+  "internalQueryFrameworkControl": "forceClassicEngine"
+ },
+ "command": {
+  "aggregate": "transactions",
+  "pipeline": [
+   {
+    "$match": {
+     "status": "FAILED",
+     "created_at": {
+      "$gte": "2026-10-24 00:00:00",
+      "$lt": "2026-10-31 00:00:00"
+     }
+    }
+   },
+   {
+    "$group": {
+     "_id": {
+      "channel": "$channel",
+      "reason": {
+       "$last": "$history.reason"
+      }
+     },
+     "failures": {
+      "$sum": 1
+     }
+    }
+   },
+   {
+    "$sort": {
+     "failures": -1,
+     "_id.channel": 1
+    }
+   }
+  ],
+  "cursor": {},
+  "maxTimeMS": 30000,
+  "$db": "oworail"
+ },
+ "ok": 1.0,
+ "$clusterTime": {
+  "clusterTime": "Timestamp(1794375097, 1)",
+  "signature": {
+   "hash": "b'\\xa5\\xbds\\xe5\\xa2\\xf6k\\x81kf\\xf2K3\\xf6\\xd20\\xab\\x03/\\xf7'",
+   "keyId": 7706771578003914758
+  }
+ },
+ "operationTime": "Timestamp(1794375097, 1)"
+}

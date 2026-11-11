@@ -1,0 +1,262 @@
+{
+ "explainVersion": "1",
+ "stages": [
+  {
+   "$cursor": {
+    "queryPlanner": {
+     "namespace": "oworail.transactions",
+     "indexFilterSet": false,
+     "parsedQuery": {
+      "$and": [
+       {
+        "created_at": {
+         "$lt": "2026-10-31 00:00:00"
+        }
+       },
+       {
+        "created_at": {
+         "$gte": "2026-10-30 00:00:00"
+        }
+       },
+       {
+        "type": {
+         "$in": [
+          "BILL_PAYMENT",
+          "MERCHANT_PAYMENT",
+          "TRANSFER"
+         ]
+        }
+       }
+      ]
+     },
+     "queryHash": "D54CB49B",
+     "planCacheKey": "D54CB49B",
+     "optimizationTimeMillis": 0,
+     "maxIndexedOrSolutionsReached": false,
+     "maxIndexedAndSolutionsReached": false,
+     "maxScansToExplodeReached": false,
+     "winningPlan": {
+      "stage": "PROJECTION_DEFAULT",
+      "transformBy": {
+       "amount_kobo": 1,
+       "source.wallet": 1,
+       "_id": 0
+      },
+      "inputStage": {
+       "stage": "COLLSCAN",
+       "filter": {
+        "$and": [
+         {
+          "created_at": {
+           "$lt": "2026-10-31 00:00:00"
+          }
+         },
+         {
+          "created_at": {
+           "$gte": "2026-10-30 00:00:00"
+          }
+         },
+         {
+          "type": {
+           "$in": [
+            "BILL_PAYMENT",
+            "MERCHANT_PAYMENT",
+            "TRANSFER"
+           ]
+          }
+         }
+        ]
+       },
+       "direction": "forward"
+      }
+     },
+     "rejectedPlans": []
+    },
+    "executionStats": {
+     "executionSuccess": true,
+     "nReturned": 5554,
+     "executionTimeMillis": 1751,
+     "totalKeysExamined": 0,
+     "totalDocsExamined": 1101109,
+     "executionStages": {
+      "stage": "PROJECTION_DEFAULT",
+      "nReturned": 5554,
+      "executionTimeMillisEstimate": 285,
+      "works": 1101110,
+      "advanced": 5554,
+      "needTime": 1095555,
+      "needYield": 0,
+      "saveState": 1102,
+      "restoreState": 1102,
+      "isEOF": 1,
+      "transformBy": {
+       "amount_kobo": 1,
+       "source.wallet": 1,
+       "_id": 0
+      },
+      "inputStage": {
+       "stage": "COLLSCAN",
+       "filter": {
+        "$and": [
+         {
+          "created_at": {
+           "$lt": "2026-10-31 00:00:00"
+          }
+         },
+         {
+          "created_at": {
+           "$gte": "2026-10-30 00:00:00"
+          }
+         },
+         {
+          "type": {
+           "$in": [
+            "BILL_PAYMENT",
+            "MERCHANT_PAYMENT",
+            "TRANSFER"
+           ]
+          }
+         }
+        ]
+       },
+       "nReturned": 5554,
+       "executionTimeMillisEstimate": 280,
+       "works": 1101110,
+       "advanced": 5554,
+       "needTime": 1095555,
+       "needYield": 0,
+       "saveState": 1102,
+       "restoreState": 1102,
+       "isEOF": 1,
+       "direction": "forward",
+       "docsExamined": 1101109
+      }
+     }
+    }
+   },
+   "nReturned": 5554,
+   "executionTimeMillisEstimate": 1736
+  },
+  {
+   "$group": {
+    "_id": "$source.wallet",
+    "outgoing": {
+     "$sum": {
+      "$const": 1
+     }
+    },
+    "total": {
+     "$sum": "$amount_kobo"
+    }
+   },
+   "maxAccumulatorMemoryUsageBytes": {
+    "outgoing": 500064,
+    "total": 500064
+   },
+   "totalOutputDataSizeBytes": 1442893,
+   "usedDisk": false,
+   "spills": 0,
+   "spilledDataStorageSize": 0,
+   "numBytesSpilledEstimate": 0,
+   "spilledRecords": 0,
+   "nReturned": 5209,
+   "executionTimeMillisEstimate": 1746
+  },
+  {
+   "$match": {
+    "outgoing": {
+     "$gte": 5
+    }
+   },
+   "nReturned": 6,
+   "executionTimeMillisEstimate": 1750
+  },
+  {
+   "$sort": {
+    "sortKey": {
+     "outgoing": -1,
+     "_id": 1
+    }
+   },
+   "totalDataSizeSortedBytesEstimate": 2142,
+   "usedDisk": false,
+   "spills": 0,
+   "spilledDataStorageSize": 0,
+   "nReturned": 6,
+   "executionTimeMillisEstimate": 1750
+  }
+ ],
+ "serverInfo": {
+  "host": "4f7edf739c1b",
+  "port": 27017,
+  "version": "7.0.45",
+  "gitVersion": "a52313e13ab55c9bddf7c3ff91dab286fa381796"
+ },
+ "serverParameters": {
+  "internalQueryFacetBufferSizeBytes": 104857600,
+  "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+  "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+  "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+  "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+  "internalQueryProhibitBlockingMergeOnMongoS": 0,
+  "internalQueryMaxAddToSetBytes": 104857600,
+  "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+  "internalQueryFrameworkControl": "forceClassicEngine"
+ },
+ "command": {
+  "aggregate": "transactions",
+  "pipeline": [
+   {
+    "$match": {
+     "created_at": {
+      "$gte": "2026-10-30 00:00:00",
+      "$lt": "2026-10-31 00:00:00"
+     },
+     "type": {
+      "$in": [
+       "TRANSFER",
+       "MERCHANT_PAYMENT",
+       "BILL_PAYMENT"
+      ]
+     }
+    }
+   },
+   {
+    "$group": {
+     "_id": "$source.wallet",
+     "outgoing": {
+      "$sum": 1
+     },
+     "total": {
+      "$sum": "$amount_kobo"
+     }
+    }
+   },
+   {
+    "$match": {
+     "outgoing": {
+      "$gte": 5
+     }
+    }
+   },
+   {
+    "$sort": {
+     "outgoing": -1,
+     "_id": 1
+    }
+   }
+  ],
+  "cursor": {},
+  "maxTimeMS": 30000,
+  "$db": "oworail"
+ },
+ "ok": 1.0,
+ "$clusterTime": {
+  "clusterTime": "Timestamp(1794375066, 1)",
+  "signature": {
+   "hash": "b'R\\x96\\xba\\xa7D\\xe5\\xe3\\xc988|\\xe2a\\xd5\\x12\\xc0\\xb6u\\x97\\xa2'",
+   "keyId": 7706771578003914758
+  }
+ },
+ "operationTime": "Timestamp(1794375066, 1)"
+}

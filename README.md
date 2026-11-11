@@ -71,7 +71,7 @@ Money is stored as integer **kobo** (₦1 = 100 kobo) and all timestamps are sto
 ```
 advanced-database-portfolio/
 ├── README.md                              ← you are here (case study, map, how to run, evidence index)
-├── docker-compose.yml                     PostgreSQL 16 + MongoDB 7.0 (single node) for P1–P4
+├── docker-compose.yml                     PostgreSQL 16 + MongoDB 7.0 (single-node replica set) for P1–P4
 ├── .env.example                           configuration template (copy to .env; .env is never committed)
 ├── requirements.txt                       pinned Python dependencies
 ├── tools/
@@ -96,7 +96,7 @@ Each portfolio folder has its own `README.md` explaining what was implemented, h
 | M2–M4 | P1: requirements, ER diagram (Chen), relational schema, normalisation, implementation | Done |
 | M5–M6 | P2: query workload, execution plans, indexing and optimisation | Done |
 | M7–M8 | P3: transactions (commit, rollback, savepoint), isolation and concurrency control | Done |
-| M9 | P4: MongoDB document model on the same case study | Planned |
+| M9 | P4: MongoDB document model on the same case study | Done |
 | M10 | P5: distributed design and a three-node MongoDB replica set | Planned |
 | M11 | Final documentation, fresh-run verification, LMS summary | Planned |
 
@@ -105,7 +105,7 @@ Each portfolio folder has its own `README.md` explaining what was implemented, h
 | Purpose | Technology | Version |
 |---|---|---|
 | Relational database (P1–P3) | PostgreSQL, Docker image `postgres:16` | 16.15 (exact version and image digest recorded in [evidence](portfolio-1-database-design/evidence/m1_postgres_environment.txt)) |
-| Document database (P4) | MongoDB, Docker image `mongo:7.0` | 7.0.45 (exact version and image digest recorded in [evidence](portfolio-4-nosql/evidence/m1_mongo_environment.txt)) |
+| Document database (P4) | MongoDB, Docker image `mongo:7.0`, run as a single-node replica set (`rs0`) so multi-document transactions work | 7.0.45 (exact version and image digest recorded in [evidence](portfolio-4-nosql/evidence/m1_mongo_environment.txt)) |
 | Distributed database (P5) | MongoDB three-node replica set (Docker Compose) | 7.0 |
 | Containers | Docker Engine + Docker Compose v2 | Docker 28.4, Compose 2.39 |
 | Scripting | Python with `psycopg` 3, `pymongo`, `tabulate` | Python 3.11+ (developed on 3.13.5); see [requirements.txt](requirements.txt) |
@@ -158,7 +158,8 @@ Completed portfolio by portfolio; finalised in M11.
 | Portfolio 1: design and implementation | [portfolio-1-database-design/README.md](portfolio-1-database-design/README.md#required-evidence) (ERD, schema, keys, constraints, normalisation, build and test outputs) |
 | Portfolio 2: query processing and optimisation | [portfolio-2-query-optimisation/README.md](portfolio-2-query-optimisation/README.md#required-evidence) (queries, results, plans, indexes, before/after analysis) |
 | Portfolio 3: transactions and concurrency | [portfolio-3-transactions-concurrency/README.md](portfolio-3-transactions-concurrency/README.md#required-evidence) (commit, rollback, isolation, locking timelines) |
-| Portfolio 4–5 evidence | _added as each portfolio is completed_ |
+| Portfolio 4: NoSQL (MongoDB) | [portfolio-4-nosql/README.md](portfolio-4-nosql/README.md#required-evidence) (document model, validation, explain before/after, transactions, suitability) |
+| Portfolio 5 evidence | _added when the portfolio is completed_ |
 
 ## 7. Academic integrity and AI use
 

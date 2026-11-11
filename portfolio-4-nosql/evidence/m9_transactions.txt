@@ -1,0 +1,48 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Multi-document transactions
+Captured at : 2026-11-11T06:36:55+01:00 (Africa/Lagos, WAT) | 2026-11-11T05:36:55Z (UTC)
+Command     : 'C:\Users\user\projects\advanced-database-portfolio\.venv\Scripts\python.exe' portfolio-4-nosql/scripts/transfers.py
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 32.564 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : db version v7.0.45  [service 'mongo' in docker-compose.yml]
+================================================================================
+
+=== D1  Commit: debit, credit, fee and the transaction document in one transaction
+  OWR811110536571: {'3000000001': 1750000, '3000000002': 50000, '9000000001': 1975520050} -> {'3000000001': 1739000, '3000000002': 60000, '9000000001': 1975521050}
+  PASS  all three wallets moved and the transaction exists
+
+=== D2  Abort: a failure after the debit undoes the debit
+  refused: wallet 3000000005 can't receive
+  PASS  the frozen receiver makes the transfer fail
+  PASS  the sender's debit was rolled back
+  PASS  no transaction document was written
+
+=== D3  The same failure without a transaction leaves the money missing
+  refused: simulated failure after the debit
+  PASS  without a transaction the debit stays: money has vanished  (11000 kobo missing)
+  repaired by hand: +11000 back to 3000000003
+
+=== D4  Isolation: other readers don't see a transaction until it commits
+  inside 1718000, outside during 1739000, outside after commit 1718000
+  PASS  inside the transaction the debit is visible
+  PASS  outside, the old balance is read until COMMIT
+  PASS  after COMMIT everyone sees it
+
+=== D5  Write conflict: two transactions update the same wallet
+  second transaction: 112 WriteConflict, labels ['TransientTransactionError']
+  PASS  the second writer fails at once with WriteConflict instead of waiting
+  PASS  the error is labelled TransientTransactionError, so it is safe to retry
+  PASS  after a retry both updates are applied  (1718000 -> 1715000)
+
+=== D6  Idempotency: the same request twice is posted once
+  PASS  the retry fails on the unique idempotency key and its transaction aborts
+  PASS  the sender paid once
+
+=== Afterwards: every wallet balance still matches its entries
+  PASS  reconciliation finds no differences  (0 wallets differ)
+
+Multi-document transactions: 14 of 14 checks passed

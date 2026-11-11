@@ -34,8 +34,15 @@ services:
 
   mongo:
     image: mongo:7.0
-    # Cap the WiredTiger cache so the laptop keeps memory headroom.
-    command: ["mongod", "--wiredTigerCacheSizeGB", "0.5"]
+    # Single-node replica set for multi-document transactions; with auth it needs a keyfile.
+    command:
+      - bash
+      - -c
+      - |
+        head -c 756 /dev/urandom | base64 -w 0 > /tmp/mongo-keyfile
+        chmod 400 /tmp/mongo-keyfile
+        chown mongodb:mongodb /tmp/mongo-keyfile
+        exec docker-entrypoint.sh mongod --replSet rs0 --keyFile /tmp/mongo-keyfile --bind_ip_all --wiredTigerCacheSizeGB 0.5
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?Set MONGO_ROOT_PASSWORD in .env (copy .env.example)}

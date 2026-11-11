@@ -1,0 +1,116 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Commit, rollback, errors, savepoints, atomicity and durability
+Captured at : 2026-11-11T05:23:37+01:00 (Africa/Lagos, WAT) | 2026-11-11T04:23:37Z (UTC)
+Command     : 'C:\Users\user\projects\advanced-database-portfolio\.venv\Scripts\python.exe' portfolio-3-transactions-concurrency/scripts/transactions.py
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 21.437 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : postgres (PostgreSQL) 16.15 (Debian 16.15-1.pgdg13+2)  [service 'postgres' in docker-compose.yml]
+================================================================================
+
+=== T1  COMMIT: a transfer becomes visible to others only when it commits
+       68 ms  B   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000002'
+       71 ms  B     -> 50000
+       71 ms  A   BEGIN
+       72 ms  A   SELECT post_transaction('ecc7098d-89f3-4080-b267-33d964ce071f', 'TRANSFER', '3000000001', '3000000002', 10000, 'APP')
+       84 ms  A     -> 13
+       84 ms  A   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000002'
+       86 ms  A     -> 60000
+       86 ms  B   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000002'
+       87 ms  B     -> 50000
+       88 ms  A   COMMIT
+       94 ms  B   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000002'
+       96 ms  B     -> 60000
+       96 ms  chk PASS  A sees its own uncommitted change  (50000 -> 60000)
+       96 ms  chk PASS  B does not see A's change before COMMIT  (50000)
+       96 ms  chk PASS  B sees the change after COMMIT  (60000)
+
+=== T2  ROLLBACK: everything the transaction did is undone
+      118 ms  A   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000001'
+      121 ms  A     -> 1739000
+      124 ms  A   BEGIN
+      125 ms  A   SELECT post_transaction('c672de06-24b5-407a-b0a9-138d1abe559d', 'TRANSFER', '3000000001', '3000000002', 20000, 'APP')
+      136 ms  A     -> 14
+      136 ms  A   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000001'
+      137 ms  A     -> 1718000
+      137 ms  A   ROLLBACK
+      138 ms  A   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000001'
+      140 ms  A     -> 1739000
+      141 ms  chk PASS  balance changed inside the transaction  (1739000 -> 1718000)
+      141 ms  chk PASS  balance restored after ROLLBACK  (1739000)
+      141 ms  chk PASS  no transaction, ledger, history or audit rows left  ((13, 27, 27, 1, 14))
+      144 ms  chk PASS  the idempotency key is unused
+
+=== T3  An error inside a transaction aborts all of it
+      163 ms  A   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000003'
+      166 ms  A     -> 13634000
+      170 ms  A   BEGIN
+      171 ms  A   SELECT post_transaction('c68f1cc5-72ae-4937-8c7d-e848759898c8', 'MERCHANT_PAYMENT', '3000000003', '3000000042', 50000, 'APP')
+      180 ms  A     -> 15
+      180 ms  A   SELECT post_transaction('dcf01898-1737-48ad-87ca-158f122fd03c', 'MERCHANT_PAYMENT', '3000000003', '3000000102', 50000, 'APP')
+      183 ms  A     ERROR P0001: MERCHANT_PAYMENT from wallet 3000000003 (CUSTOMER) to wallet 3000000102 (BILLER) is not allowed (BR-10)
+      183 ms  A   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000003'
+      185 ms  A     ERROR 25P02: current transaction is aborted, commands ignored until end of transaction block
+      185 ms  A   ROLLBACK
+      186 ms  chk PASS  paying a biller as a merchant is rejected (BR-10)
+      186 ms  chk PASS  the transaction refuses further statements (25P02)  (25P02)
+      186 ms  A   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000003'
+      188 ms  A     -> 13634000
+      189 ms  chk PASS  the first, valid payment is undone too
+
+=== T4  SAVEPOINT: one bad payment in a batch is undone, the rest commit
+      226 ms  A   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000003'
+      229 ms  A     -> 13634000
+      231 ms  A   BEGIN
+      233 ms  A   SAVEPOINT payment_1
+      235 ms  A   SELECT post_transaction('fd2b6565-e589-4da7-a8a5-efd453667736', 'MERCHANT_PAYMENT', '3000000003', '3000000042', 30000, 'APP')
+      245 ms  A     -> 16
+      245 ms  A   RELEASE SAVEPOINT payment_1
+      246 ms  A   SAVEPOINT payment_2
+      248 ms  A   SELECT post_transaction('81a38314-df00-45e0-a552-aa8574d5b0df', 'MERCHANT_PAYMENT', '3000000003', '3000000102', 40000, 'APP')
+      250 ms  A     ERROR P0001: MERCHANT_PAYMENT from wallet 3000000003 (CUSTOMER) to wallet 3000000102 (BILLER) is not allowed (BR-10)
+      250 ms  A   ROLLBACK TO SAVEPOINT payment_2
+      252 ms  A   SAVEPOINT payment_3
+      253 ms  A   SELECT post_transaction('811b51a4-3460-40c8-a2d7-f7e3cae6cf7b', 'BILL_PAYMENT', '3000000003', '3000000102', 40000, 'APP', p_bill_reference => 'SVC-2026110001')
+      258 ms  A     -> 17
+      258 ms  A   RELEASE SAVEPOINT payment_3
+      259 ms  A   COMMIT
+      267 ms  A   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000003'
+      269 ms  A     -> 13563800
+      270 ms  chk PASS  two of the three payments committed  (2 new)
+      270 ms  chk PASS  balance reflects exactly those two  (13634000 -> 13563800)
+
+=== T5  Statement atomicity: a reversal that fails halfway leaves nothing behind
+      290 ms  A   SELECT post_transaction('845e5573-9d25-4f9f-9c34-80339b836f38', 'TRANSFER', '3000000001', '3000000002', 100000, 'APP', p_transaction_ref => 'OWR700000000001')
+      309 ms  A     -> 18
+      309 ms  A   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000002'
+      310 ms  A     -> 160000
+      310 ms  A   SELECT post_transaction('faaef23b-ee36-4efc-b5b3-4de23741e314', 'MERCHANT_PAYMENT', '3000000002', '3000000042', 159000, 'APP')
+      316 ms  A     -> 19
+      319 ms  A   SELECT reverse_transaction('OWR700000000001', 'customer dispute', 'support.test', 'b9402b8a-ada3-4cc9-bc94-458f6269c6cf')
+      322 ms  A     ERROR P0001: cannot reverse OWR700000000001: wallet 3000000002 no longer holds the funds
+      322 ms  chk PASS  the reversal is refused: the receiver spent the money
+      325 ms  chk PASS  no partial reversal rows in any of the five tables  ((17, 37, 35, 1, 14))
+      327 ms  chk PASS  the original is still SUCCESSFUL
+
+=== T6  Durability: a committed transfer survives the server being killed
+      345 ms  A   SELECT post_transaction('e6335f57-1266-4976-a24b-227a7f93db67', 'TRANSFER', '3000000003', '3000000001', 25000, 'APP')
+      360 ms  A     -> 20
+      362 ms  A   BEGIN
+      363 ms  A   SELECT post_transaction('9cb2364a-66ce-4b97-b162-9452a2f9bc11', 'TRANSFER', '3000000003', '3000000001', 99000, 'APP', p_transaction_ref => 'OWR700000000002')
+      369 ms  A     -> 21
+      369 ms  A   (left uncommitted)
+      369 ms  sys docker compose kill postgres   (SIGKILL, no clean shutdown)
+    19005 ms  sys postgres restarted
+    20287 ms  log 2026-11-11 04:23:51.631 UTC [30] LOG:  database system was not properly shut down; automatic recovery in progress
+    20287 ms  log 2026-11-11 04:23:51.831 UTC [30] LOG:  redo starts at 1/6A8BED98
+    20287 ms  log 2026-11-11 04:23:52.254 UTC [30] LOG:  redo done at 1/6AE86480 system usage: CPU: user: 0.26 s, system: 0.17 s, elapsed: 0.42 s
+    20287 ms  log 2026-11-11 04:23:52.636 UTC [1] LOG:  database system is ready to accept connections
+    20367 ms  chk PASS  the committed transfer is still there  (OWR000000001006)
+    20376 ms  chk PASS  the uncommitted transfer is gone
+    20395 ms  chk PASS  balances still match the ledger after recovery
+
+Transaction demos: 18 of 18 checks passed

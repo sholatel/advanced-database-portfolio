@@ -95,7 +95,7 @@ Each portfolio folder has its own `README.md` explaining what was implemented, h
 | M1 | Repository scaffold, case study, database containers | Done |
 | M2–M4 | P1: requirements, ER diagram (Chen), relational schema, normalisation, implementation | Done |
 | M5–M6 | P2: query workload, execution plans, indexing and optimisation | Done |
-| M7–M8 | P3: transactions (commit, rollback, savepoint), isolation and concurrency control | Planned |
+| M7–M8 | P3: transactions (commit, rollback, savepoint), isolation and concurrency control | Done |
 | M9 | P4: MongoDB document model on the same case study | Planned |
 | M10 | P5: distributed design and a three-node MongoDB replica set | Planned |
 | M11 | Final documentation, fresh-run verification, LMS summary | Planned |
@@ -157,7 +157,8 @@ Completed portfolio by portfolio; finalised in M11.
 | Database environment (MongoDB) | [m1_mongo_environment.txt](portfolio-4-nosql/evidence/m1_mongo_environment.txt) |
 | Portfolio 1: design and implementation | [portfolio-1-database-design/README.md](portfolio-1-database-design/README.md#required-evidence) (ERD, schema, keys, constraints, normalisation, build and test outputs) |
 | Portfolio 2: query processing and optimisation | [portfolio-2-query-optimisation/README.md](portfolio-2-query-optimisation/README.md#required-evidence) (queries, results, plans, indexes, before/after analysis) |
-| Portfolio 3–5 evidence | _added as each portfolio is completed_ |
+| Portfolio 3: transactions and concurrency | [portfolio-3-transactions-concurrency/README.md](portfolio-3-transactions-concurrency/README.md#required-evidence) (commit, rollback, isolation, locking timelines) |
+| Portfolio 4–5 evidence | _added as each portfolio is completed_ |
 
 ## 7. Academic integrity and AI use
 

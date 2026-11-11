@@ -1,0 +1,119 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Isolation levels and read anomalies
+Captured at : 2026-11-11T05:24:02+01:00 (Africa/Lagos, WAT) | 2026-11-11T04:24:02Z (UTC)
+Command     : 'C:\Users\user\projects\advanced-database-portfolio\.venv\Scripts\python.exe' portfolio-3-transactions-concurrency/scripts/isolation.py
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 3.555 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : postgres (PostgreSQL) 16.15 (Debian 16.15-1.pgdg13+2)  [service 'postgres' in docker-compose.yml]
+================================================================================
+
+=== I1  No dirty reads, even when READ UNCOMMITTED is requested
+      236 ms  B   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000001'
+      248 ms  B     -> 1663000
+      248 ms  A   BEGIN
+      252 ms  A   SELECT post_transaction('aacc9db2-7a49-4495-a548-bbacfb8eb4cc', 'TRANSFER', '3000000001', '3000000002', 15000, 'APP')
+      329 ms  A     -> 34
+      329 ms  B   BEGIN ISOLATION LEVEL READ UNCOMMITTED
+      339 ms  B   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000001'
+      345 ms  B     -> 1663000
+      345 ms  B   COMMIT
+      355 ms  A   ROLLBACK
+      358 ms  chk PASS  B never sees A's uncommitted debit  (saw 1663000, committed value 1663000)
+
+=== I2  Re-reading a balance under READ COMMITTED
+      471 ms  A   BEGIN ISOLATION LEVEL READ COMMITTED
+      474 ms  A   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000001'
+      481 ms  A     -> 1663000
+      481 ms  B   SELECT post_transaction('41992017-7016-40a9-809d-92fee6e4bdbb', 'TRANSFER', '3000000001', '3000000003', 5000, 'APP')
+      544 ms  B     -> 35
+      544 ms  A   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000001'
+      546 ms  A     -> 1657000
+      546 ms  A   COMMIT
+      551 ms  A   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000001'
+      556 ms  A     -> 1657000
+      556 ms  chk PASS  READ COMMITTED: the second read sees B's commit (non-repeatable read)  (1663000 then 1657000)
+
+=== I2  Re-reading a balance under REPEATABLE READ
+      644 ms  A   BEGIN ISOLATION LEVEL REPEATABLE READ
+      646 ms  A   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000001'
+      650 ms  A     -> 1657000
+      650 ms  B   SELECT post_transaction('3e2f2b94-ff19-43ad-af53-c41edb881fb7', 'TRANSFER', '3000000001', '3000000003', 5000, 'APP')
+      728 ms  B     -> 36
+      729 ms  A   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000001'
+      735 ms  A     -> 1657000
+      735 ms  A   COMMIT
+      742 ms  A   SELECT balance_kobo FROM wallet WHERE wallet_number = '3000000001'
+      747 ms  A     -> 1651000
+      747 ms  chk PASS  REPEATABLE READ: both reads see the same snapshot  (1657000 then 1657000)
+      747 ms  chk PASS  after COMMIT, a new transaction sees B's change  (1651000)
+
+=== I3  Counting today's incoming transfers twice under READ COMMITTED
+      849 ms  A   BEGIN ISOLATION LEVEL READ COMMITTED
+      852 ms  A   SELECT count(*) FROM transaction t JOIN wallet w ON w.wallet_id = t.destination_wallet_id WHERE w.wallet_number = '3000000002' AND t.created_at >= date_trunc('day', now(), 'UTC')
+      860 ms  A     -> 2
+      860 ms  B   SELECT post_transaction('35b62ecb-ac81-4904-b62c-6a91575baa9f', 'TRANSFER', '3000000003', '3000000002', 7000, 'APP')
+      922 ms  B     -> 37
+      922 ms  A   SELECT count(*) FROM transaction t JOIN wallet w ON w.wallet_id = t.destination_wallet_id WHERE w.wallet_number = '3000000002' AND t.created_at >= date_trunc('day', now(), 'UTC')
+      925 ms  A     -> 3
+      925 ms  A   COMMIT
+      927 ms  chk PASS  READ COMMITTED: a new row appears in the second count (phantom)  (2 then 3)
+
+=== I3  Counting today's incoming transfers twice under REPEATABLE READ
+     1012 ms  A   BEGIN ISOLATION LEVEL REPEATABLE READ
+     1015 ms  A   SELECT count(*) FROM transaction t JOIN wallet w ON w.wallet_id = t.destination_wallet_id WHERE w.wallet_number = '3000000002' AND t.created_at >= date_trunc('day', now(), 'UTC')
+     1030 ms  A     -> 3
+     1030 ms  B   SELECT post_transaction('746bdc82-ca9a-4e19-ad67-0bd56802781a', 'TRANSFER', '3000000003', '3000000002', 7000, 'APP')
+     1097 ms  B     -> 38
+     1097 ms  A   SELECT count(*) FROM transaction t JOIN wallet w ON w.wallet_id = t.destination_wallet_id WHERE w.wallet_number = '3000000002' AND t.created_at >= date_trunc('day', now(), 'UTC')
+     1104 ms  A     -> 3
+     1104 ms  A   COMMIT
+     1110 ms  chk PASS  REPEATABLE READ: no phantom row  (3 then 3)
+
+=== I4  Write skew: two withdrawals each check the combined balance, under REPEATABLE READ
+     1235 ms  A   SELECT lab.reset()
+     1259 ms  A     -> None
+     1259 ms  A   BEGIN ISOLATION LEVEL REPEATABLE READ
+     1264 ms  B   BEGIN ISOLATION LEVEL REPEATABLE READ
+     1270 ms  A   SELECT sum(balance_kobo) FROM lab.account WHERE owner = 'Adaeze Okafor'
+     1278 ms  A     -> 200000
+     1279 ms  A   UPDATE lab.account SET balance_kobo = balance_kobo - 150000 WHERE account_id = 1
+     1285 ms  B   SELECT sum(balance_kobo) FROM lab.account WHERE owner = 'Adaeze Okafor'
+     1292 ms  B     -> 200000
+     1292 ms  B   UPDATE lab.account SET balance_kobo = balance_kobo - 150000 WHERE account_id = 2
+     1296 ms  A   COMMIT
+     1302 ms  B   COMMIT
+     1308 ms  A   SELECT sum(balance_kobo) FROM lab.account WHERE owner = 'Adaeze Okafor'
+     1311 ms  A     -> -100000
+     1312 ms  chk PASS  REPEATABLE READ: both withdrawals commit and the rule is broken  (combined balance -100000)
+
+=== I4  Write skew: two withdrawals each check the combined balance, under SERIALIZABLE
+     1411 ms  A   SELECT lab.reset()
+     1433 ms  A     -> None
+     1433 ms  A   BEGIN ISOLATION LEVEL SERIALIZABLE
+     1441 ms  B   BEGIN ISOLATION LEVEL SERIALIZABLE
+     1444 ms  A   SELECT sum(balance_kobo) FROM lab.account WHERE owner = 'Adaeze Okafor'
+     1448 ms  A     -> 200000
+     1448 ms  A   UPDATE lab.account SET balance_kobo = balance_kobo - 150000 WHERE account_id = 1
+     1452 ms  B   SELECT sum(balance_kobo) FROM lab.account WHERE owner = 'Adaeze Okafor'
+     1477 ms  B     -> 200000
+     1477 ms  B   UPDATE lab.account SET balance_kobo = balance_kobo - 150000 WHERE account_id = 2
+     1480 ms  A   COMMIT
+     1486 ms  B   COMMIT
+     1493 ms  B     ERROR 40001: could not serialize access due to read/write dependencies among transactions
+     1493 ms  B   ROLLBACK
+     1500 ms  B   BEGIN ISOLATION LEVEL SERIALIZABLE
+     1535 ms  B   SELECT sum(balance_kobo) FROM lab.account WHERE owner = 'Adaeze Okafor'
+     1541 ms  B     -> 50000
+     1541 ms  B     refused: combined balance 50000 does not cover 150000
+     1541 ms  B   COMMIT
+     1561 ms  A   SELECT sum(balance_kobo) FROM lab.account WHERE owner = 'Adaeze Okafor'
+     1565 ms  A     -> 50000
+     1565 ms  chk PASS  SERIALIZABLE: the second commit fails with a serialization error (40001)  (40001)
+     1565 ms  chk PASS  on retry the withdrawal sees the first one and is refused
+     1565 ms  chk PASS  the combined balance never goes below zero  (combined balance 50000)
+
+Isolation demos: 10 of 10 checks passed

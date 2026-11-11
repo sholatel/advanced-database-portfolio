@@ -127,3 +127,23 @@ This log records, milestone by milestone, how I (Yusuf O. Sholadoye) used an AI 
 - Honest negatives kept in the analysis: the partial index was never chosen by the planner, and the indexes made posting about 16 % slower and more than doubled index space.
 
 ---
+
+## M7–M8: Transactions and concurrency (11 Nov 2026)
+
+**My decisions:** demonstrate every ACID property and every classic anomaly with real concurrent sessions rather than describing them; test the real posting function under load, not only toy examples;
+
+**Design decisions (approved at review):**
+- Sessions are driven in a fixed order, and a session's wait is confirmed in `pg_stat_activity` / `pg_blocking_pids()` before the script continues, so every interleaving is repeatable.
+- The deliberately unsafe patterns (lost update, unordered locking, write skew) run on a separate `lab` table, so the OwoRail ledger is never made invalid.
+- Durability is tested by killing the server with SIGKILL and reading PostgreSQL's own recovery log.
+- `deadlock_timeout` is lowered to 100 ms only inside the deadlock load test, so 100 deadlocks don't take 100 seconds.
+- The FEES wallet hot row is measured and reported as a design limit, with possible fixes.
+
+**AI assistance used:** generated the session helper, the three demo scripts, the lab schema and the pipeline script, and drafted the README, the two-terminal guide and the concurrency analysis, to my specification.
+
+**How it was verified:**
+- The pipeline ran from a fresh build: transactions 18 of 18, isolation 10 of 10, locking and concurrency 21 of 21 checks; the Portfolio 1 consistency checks afterwards passed 13 of 13 with zero violations.
+- Problems found and fixed before the final run: polling `pg_stat_activity` from a session inside an open transaction returns a stale snapshot, so blocking is now detected from a separate connection; test phone numbers had one digit too many; one load-test wallet would have hit the Tier 1 daily limit before "insufficient funds", so it is now funded with exactly 50,000; the crash test's log window also picked up an earlier run's recovery, so it now reads the log from the moment of the kill.
+- Every figure in the analysis was checked against the captured evidence; no `.env` secret appears in any output.
+
+---

@@ -1,0 +1,132 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Lost update, row locks, deadlocks and post_transaction under concurrency
+Captured at : 2026-11-11T05:24:08+01:00 (Africa/Lagos, WAT) | 2026-11-11T04:24:08Z (UTC)
+Command     : 'C:\Users\user\projects\advanced-database-portfolio\.venv\Scripts\python.exe' portfolio-3-transactions-concurrency/scripts/locking.py
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 28.339 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : postgres (PostgreSQL) 16.15 (Debian 16.15-1.pgdg13+2)  [service 'postgres' in docker-compose.yml]
+================================================================================
+
+=== L1  Lost update: read, compute in the application, write back (READ COMMITTED)
+      953 ms  A   SELECT lab.reset()
+      959 ms  A     -> None
+      959 ms  A   BEGIN ISOLATION LEVEL READ COMMITTED
+      961 ms  B   BEGIN ISOLATION LEVEL READ COMMITTED
+      963 ms  A   SELECT balance_kobo FROM lab.account WHERE account_id = 3
+      966 ms  A     -> 100000
+      966 ms  B   SELECT balance_kobo FROM lab.account WHERE account_id = 3
+      970 ms  B     -> 100000
+      970 ms  A   UPDATE lab.account SET balance_kobo = 70000 WHERE account_id = 3
+      973 ms  B   UPDATE lab.account SET balance_kobo = 50000 WHERE account_id = 3   (sent, waiting)
+     1014 ms  obs B is waiting: Lock/transactionid, blocked by pid [95]
+     1014 ms  A   COMMIT
+     1018 ms  B     -> done
+     1019 ms  B   COMMIT
+     1023 ms  A   SELECT balance_kobo FROM lab.account WHERE account_id = 3
+     1026 ms  A     -> 50000
+     1026 ms  chk PASS  READ COMMITTED: the 30,000 withdrawal is lost  (final 50000, correct 20000)
+
+=== L1  Lost update: read, compute in the application, write back (REPEATABLE READ)
+     1095 ms  A   SELECT lab.reset()
+     1103 ms  A     -> None
+     1103 ms  A   BEGIN ISOLATION LEVEL REPEATABLE READ
+     1106 ms  B   BEGIN ISOLATION LEVEL REPEATABLE READ
+     1107 ms  A   SELECT balance_kobo FROM lab.account WHERE account_id = 3
+     1110 ms  A     -> 100000
+     1110 ms  B   SELECT balance_kobo FROM lab.account WHERE account_id = 3
+     1114 ms  B     -> 100000
+     1114 ms  A   UPDATE lab.account SET balance_kobo = 70000 WHERE account_id = 3
+     1116 ms  B   UPDATE lab.account SET balance_kobo = 50000 WHERE account_id = 3   (sent, waiting)
+     1162 ms  obs B is waiting: Lock/transactionid, blocked by pid [98]
+     1163 ms  A   COMMIT
+     1167 ms  B     ERROR 40001: could not serialize access due to concurrent update
+     1167 ms  B   ROLLBACK
+     1170 ms  A   SELECT balance_kobo FROM lab.account WHERE account_id = 3
+     1172 ms  A     -> 70000
+     1172 ms  chk PASS  REPEATABLE READ: B's write is refused with 40001 instead of losing A's  (final 70000)
+
+=== L2  SELECT ... FOR UPDATE: the second reader waits for the first to finish
+     1241 ms  A   SELECT lab.reset()
+     1246 ms  A     -> None
+     1246 ms  A   BEGIN
+     1248 ms  A   SELECT balance_kobo FROM lab.account WHERE account_id = 3 FOR UPDATE
+     1250 ms  A     -> 100000
+     1250 ms  B   BEGIN
+     1252 ms  B   SELECT balance_kobo FROM lab.account WHERE account_id = 3 FOR UPDATE   (sent, waiting)
+     1285 ms  obs B is waiting: Lock/transactionid, blocked by pid [101]
+     1285 ms  A   UPDATE lab.account SET balance_kobo = 70000 WHERE account_id = 3
+     1287 ms  A   COMMIT
+     1290 ms  B     -> 70000
+     1290 ms  B   UPDATE lab.account SET balance_kobo = 20000 WHERE account_id = 3
+     1292 ms  B   COMMIT
+     1295 ms  A   SELECT balance_kobo FROM lab.account WHERE account_id = 3
+     1297 ms  A     -> 20000
+     1297 ms  chk PASS  B was blocked by A's row lock  (blocked by [101], A is 101)
+     1297 ms  chk PASS  B read the balance after A's withdrawal  (70000)
+     1297 ms  chk PASS  both withdrawals count  (final 20000)
+
+=== L3  Deadlock: two sessions lock the same two rows in opposite order
+     1356 ms  A   SELECT lab.reset()
+     1361 ms  A     -> None
+     1361 ms  A   BEGIN
+     1362 ms  B   BEGIN
+     1363 ms  A   UPDATE lab.account SET balance_kobo = balance_kobo - 1000 WHERE account_id = 1
+     1366 ms  B   UPDATE lab.account SET balance_kobo = balance_kobo - 1000 WHERE account_id = 2
+     1369 ms  A   UPDATE lab.account SET balance_kobo = balance_kobo + 1000 WHERE account_id = 2   (sent, waiting)
+     1399 ms  obs A is waiting: Lock/transactionid, blocked by pid [105]
+     1399 ms  B   UPDATE lab.account SET balance_kobo = balance_kobo + 1000 WHERE account_id = 1   (sent, waiting)
+     2426 ms  A     ERROR 40P01: deadlock detected
+     2426 ms  B     -> done
+     2427 ms  A   ROLLBACK
+     2428 ms  B   COMMIT
+     2432 ms  chk PASS  PostgreSQL detects the cycle and aborts exactly one session (40P01)  (['A'])
+     2432 ms  A   SELECT sum(balance_kobo) FROM lab.account WHERE account_id IN (1, 2)
+     2435 ms  A     -> 200000
+     2435 ms  chk PASS  money is conserved
+
+=== L4  200 opposite transfers: unordered locking against locking in key order
+    13985 ms  sys unordered: 100 deadlocks, 100 transfers completed
+    15463 ms  sys ordered:   0 deadlocks, 200 transfers completed
+    15467 ms  chk PASS  unordered locking deadlocks under load  (100 of 200)
+    15467 ms  chk PASS  locking both rows in key order first never deadlocks  ((0, 200))
+    15467 ms  chk PASS  money is conserved across all 400 attempts  (200000)
+
+=== L5  post_transaction: two transfers that together overspend a wallet
+    15493 ms  sys wallet 3500000015 holds 50000
+    15561 ms  A   BEGIN
+    15562 ms  A   SELECT post_transaction('5b4d37b1-99b9-4ad5-997f-9351684c11a7', 'TRANSFER', '3500000015', '3500000001', 40000, 'APP')
+    15577 ms  A     -> 55
+    15577 ms  B   SELECT post_transaction('6029f6de-5e5d-4b56-9278-4a09f56df041', 'TRANSFER', '3500000015', '3500000002', 40000, 'APP')   (sent, waiting)
+    15604 ms  obs B is waiting: Lock/transactionid, blocked by pid [137]
+    15604 ms  A   COMMIT
+    15618 ms  B     -> 56
+    15623 ms  chk PASS  B waits on A's lock on the sender's wallet  ([137])
+    15623 ms  chk PASS  B re-reads the balance after A commits and fails cleanly  (FAILED: insufficient funds)
+    15623 ms  chk PASS  the wallet is never overdrawn  (final 9000)
+
+=== L6  post_transaction: 200 concurrent transfers in both directions between two wallets
+    16457 ms  sys 200 transfers in 0.81 s, errors: none
+    16460 ms  chk PASS  no deadlocks or other errors  ([])
+    16460 ms  chk PASS  all 200 transfers succeeded  (200)
+    16460 ms  chk PASS  the pair lost exactly the 200 fees  (10000000 -> 9800000)
+
+=== L7  The same request sent twice at the same moment, 20 times
+    17593 ms  sys 20 pairs: 0 pairs got different ids, 0 keys stored more than once
+    17593 ms  chk PASS  both calls in every pair got the same transaction id
+    17593 ms  chk PASS  each key was posted exactly once
+    17593 ms  chk PASS  the sender paid for 20 transfers, not 40  (spent 40000)
+
+=== L8  A hot row: every transfer credits the single FEES wallet
+    20654 ms  sys MERCHANT_PAYMENT 1 session(s):    131 postings/s, lock waits sampled: 0
+    21310 ms  sys MERCHANT_PAYMENT 8 session(s):    624 postings/s, lock waits sampled: 0
+    24560 ms  sys TRANSFER         1 session(s):    123 postings/s, lock waits sampled: 0
+    26283 ms  sys TRANSFER         8 session(s):    234 postings/s, lock waits sampled: 535
+    26283 ms  chk PASS  merchant payments (no shared row) speed up with 8 sessions  (131 -> 624/s)
+    26283 ms  chk PASS  transfers wait on a lock with 8 sessions  (535 waits sampled)
+    26283 ms  sys scaling with 8 sessions: merchant payments x4.8, transfers x1.9
+
+Locking and concurrency demos: 21 of 21 checks passed

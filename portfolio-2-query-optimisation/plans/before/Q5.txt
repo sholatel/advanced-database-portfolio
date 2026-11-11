@@ -1,0 +1,37 @@
+Q5: Finance: reconcile every wallet's stored balance against the ledger (FR-08)
+phase: before
+
+SELECT wallet_number, balance_kobo, ledger_balance_kobo, difference_kobo
+FROM v_wallet_balance
+WHERE difference_kobo <> 0;
+
+Hash Left Join  (cost=57223.97..63200.90 rows=184070 width=83) (actual time=1608.320..1608.477 rows=0 loops=1)
+  Hash Cond: (w.wallet_id = l.wallet_id)
+  Filter: (((w.balance_kobo)::numeric - COALESCE(l.ledger_balance_kobo, '0'::numeric)) <> '0'::numeric)
+  Rows Removed by Filter: 102012
+  Buffers: shared hit=5756 read=20980, temp read=5340 written=10086
+  ->  Seq Scan on wallet w  (cost=0.00..4570.95 rows=184995 width=27) (actual time=0.011..10.076 rows=102012 loops=1)
+        Buffers: shared hit=2721
+  ->  Hash  (cost=56825.14..56825.14 rows=31906 width=40) (actual time=1541.417..1541.572 rows=102010 loops=1)
+        Buckets: 131072 (originally 32768)  Batches: 1 (originally 1)  Memory Usage: 5807kB
+        Buffers: shared hit=3035 read=20980, temp read=5340 written=10086
+        ->  Subquery Scan on l  (cost=56107.26..56825.14 rows=31906 width=40) (actual time=1346.328..1510.149 rows=102010 loops=1)
+              Buffers: shared hit=3035 read=20980, temp read=5340 written=10086
+              ->  Finalize HashAggregate  (cost=56107.26..56506.08 rows=31906 width=40) (actual time=1346.327..1495.366 rows=102010 loops=1)
+                    Group Key: ledger_entry.wallet_id
+                    Batches: 5  Memory Usage: 8241kB  Disk Usage: 11240kB
+                    Buffers: shared hit=3035 read=20980, temp read=5340 written=10086
+                    ->  Gather  (cost=48848.64..55628.67 rows=63812 width=40) (actual time=828.301..1111.897 rows=303298 loops=1)
+                          Workers Planned: 2
+                          Workers Launched: 2
+                          Buffers: shared hit=3035 read=20980, temp read=4223 written=7952
+                          ->  Partial HashAggregate  (cost=47848.64..48247.47 rows=31906 width=40) (actual time=824.462..1034.850 rows=101099 loops=3)
+                                Group Key: ledger_entry.wallet_id
+                                Batches: 5  Memory Usage: 8241kB  Disk Usage: 11656kB
+                                Buffers: shared hit=3035 read=20980, temp read=4223 written=7952
+                                Worker 0:  Batches: 5  Memory Usage: 8241kB  Disk Usage: 15152kB
+                                Worker 1:  Batches: 5  Memory Usage: 8241kB  Disk Usage: 11600kB
+                                ->  Parallel Seq Scan on ledger_entry  (cost=0.00..35931.82 rows=1191682 width=22) (actual time=0.036..161.855 rows=956984 loops=3)
+                                      Buffers: shared hit=3035 read=20980
+Planning Time: 0.177 ms
+Execution Time: 1612.618 ms

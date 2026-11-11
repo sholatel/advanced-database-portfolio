@@ -1,0 +1,33 @@
+Q7: Settlement: October 2026 takings per merchant and biller (FR-10)
+phase: final
+
+-- read from the monthly settlement materialised view (tuning.sql)
+SELECT m.merchant_code, m.business_name, m.category, s.payments, s.gross_kobo
+FROM mv_merchant_monthly_settlement s
+JOIN merchant m ON m.merchant_id = s.merchant_id
+WHERE s.month = '2026-10-01 00:00:00+00'
+ORDER BY s.gross_kobo DESC, m.merchant_code;
+
+Sort  (cost=386.79..391.79 rows=2000 width=52) (actual time=3.278..3.416 rows=2000 loops=1)
+  Sort Key: s.gross_kobo DESC, m.merchant_code
+  Sort Method: quicksort  Memory: 210kB
+  Buffers: shared hit=124
+  ->  Hash Join  (cost=118.87..277.14 rows=2000 width=52) (actual time=1.081..2.122 rows=2000 loops=1)
+        Hash Cond: (s.merchant_id = m.merchant_id)
+        Buffers: shared hit=124
+        ->  Bitmap Heap Scan on mv_merchant_monthly_settlement s  (cost=47.78..200.78 rows=2000 width=22) (actual time=0.121..0.547 rows=2000 loops=1)
+              Recheck Cond: (month = '2026-10-01 00:00:00+00'::timestamp with time zone)
+              Heap Blocks: exact=89
+              Buffers: shared hit=98
+              ->  Bitmap Index Scan on uq_mv_merchant_monthly_settlement  (cost=0.00..47.28 rows=2000 width=0) (actual time=0.104..0.105 rows=2000 loops=1)
+                    Index Cond: (month = '2026-10-01 00:00:00+00'::timestamp with time zone)
+                    Buffers: shared hit=9
+        ->  Hash  (cost=46.04..46.04 rows=2004 width=46) (actual time=0.951..0.952 rows=2004 loops=1)
+              Buckets: 2048  Batches: 1  Memory Usage: 178kB
+              Buffers: shared hit=26
+              ->  Seq Scan on merchant m  (cost=0.00..46.04 rows=2004 width=46) (actual time=0.005..0.384 rows=2004 loops=1)
+                    Buffers: shared hit=26
+Planning:
+  Buffers: shared hit=6
+Planning Time: 0.198 ms
+Execution Time: 3.561 ms

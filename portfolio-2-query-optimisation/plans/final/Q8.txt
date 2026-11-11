@@ -1,0 +1,47 @@
+Q8: Operations: failed transactions in the last 7 days, by channel and reason
+phase: final
+
+SELECT t.channel, h.reason, count(*) AS failures
+FROM transaction t
+JOIN transaction_status_history h ON h.transaction_id = t.transaction_id AND h.status = 'FAILED'
+WHERE t.status = 'FAILED'
+  AND t.created_at >= '2026-10-24 00:00:00+00' AND t.created_at < '2026-10-31 00:00:00+00'
+GROUP BY t.channel, h.reason
+ORDER BY failures DESC, t.channel;
+
+Sort  (cost=7122.23..7122.30 rows=26 width=31) (actual time=29.169..32.689 rows=6 loops=1)
+  Sort Key: (count(*)) DESC, t.channel
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=5667
+  ->  Finalize GroupAggregate  (cost=7118.44..7121.62 rows=26 width=31) (actual time=29.084..32.682 rows=6 loops=1)
+        Group Key: t.channel, h.reason
+        Buffers: shared hit=5667
+        ->  Gather Merge  (cost=7118.44..7121.20 rows=22 width=31) (actual time=28.911..32.669 rows=6 loops=1)
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=5667
+              ->  Partial GroupAggregate  (cost=6118.41..6118.63 rows=11 width=31) (actual time=7.159..7.240 rows=2 loops=3)
+                    Group Key: t.channel, h.reason
+                    Buffers: shared hit=5667
+                    ->  Sort  (cost=6118.41..6118.44 rows=11 width=23) (actual time=7.142..7.165 rows=384 loops=3)
+                          Sort Key: t.channel, h.reason
+                          Sort Method: quicksort  Memory: 104kB
+                          Buffers: shared hit=5667
+                          Worker 0:  Sort Method: quicksort  Memory: 25kB
+                          Worker 1:  Sort Method: quicksort  Memory: 25kB
+                          ->  Nested Loop  (cost=0.86..6118.22 rows=11 width=23) (actual time=0.010..6.945 rows=384 loops=3)
+                                Buffers: shared hit=5649
+                                ->  Parallel Index Scan using ix_transaction_created on transaction t  (cost=0.43..2277.56 rows=393 width=12) (actual time=0.006..5.102 rows=384 loops=3)
+                                      Index Cond: ((created_at >= '2026-10-24 00:00:00+00'::timestamp with time zone) AND (created_at < '2026-10-31 00:00:00+00'::timestamp with time zone))
+                                      Filter: (status = 'FAILED'::text)
+                                      Rows Removed by Filter: 12273
+                                      Buffers: shared hit=1030
+                                ->  Index Scan using pk_transaction_status_history on transaction_status_history h  (cost=0.43..9.76 rows=1 width=27) (actual time=0.004..0.004 rows=1 loops=1151)
+                                      Index Cond: (transaction_id = t.transaction_id)
+                                      Filter: (status = 'FAILED'::text)
+                                      Rows Removed by Filter: 1
+                                      Buffers: shared hit=4619
+Planning:
+  Buffers: shared hit=231
+Planning Time: 0.636 ms
+Execution Time: 32.739 ms

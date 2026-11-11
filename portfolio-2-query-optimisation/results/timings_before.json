@@ -1,0 +1,171 @@
+{
+  "phase": "before",
+  "queries_file": "queries.sql",
+  "runs": 5,
+  "timeout_s": 30,
+  "settings": {
+    "server_version": "16.15 (Debian 16.15-1.pgdg13+2)",
+    "shared_buffers": "128MB",
+    "work_mem": "4MB",
+    "effective_cache_size": "4GB",
+    "random_page_cost": "4",
+    "max_parallel_workers_per_gather": "2",
+    "jit": "on"
+  },
+  "queries": [
+    {
+      "query": "Q1",
+      "title": "Support: find a customer and their wallets by phone number (FR-01)",
+      "rows": 1,
+      "result_md5": "f1cf60dd4a610307a9fd8670bb61f42f",
+      "median_ms": 0.066,
+      "min_ms": 0.046,
+      "max_ms": 0.105,
+      "planning_ms": 0.519,
+      "top_node": "Sort",
+      "buffers": 11,
+      "access": [
+        "Index Scan customer_phone (pk_customer_phone)",
+        "Index Scan wallet (ix_wallet_customer)",
+        "Index Scan customer (pk_customer)"
+      ],
+      "timed_out": false
+    },
+    {
+      "query": "Q2",
+      "title": "Wallet statement, first page: the 20 latest ledger lines of the busiest wallet (FR-07)",
+      "rows": 20,
+      "result_md5": "85b009172a583b01f324884c9a4768f9",
+      "median_ms": 14.579,
+      "min_ms": 14.217,
+      "max_ms": 16.216,
+      "planning_ms": 0.48,
+      "top_node": "Limit",
+      "buffers": 15041,
+      "access": [
+        "Index Scan wallet (uq_wallet_number)",
+        "Bitmap Heap Scan ledger_entry",
+        "Bitmap Index Scan ix_ledger_entry_wallet",
+        "Index Scan transaction (pk_transaction)"
+      ],
+      "timed_out": false
+    },
+    {
+      "query": "Q3",
+      "title": "Support: a transaction and its status history by reference",
+      "rows": 3,
+      "result_md5": "3d0d4587c72bdf88058d56631acbe5a7",
+      "median_ms": 0.056,
+      "min_ms": 0.052,
+      "max_ms": 0.078,
+      "planning_ms": 0.322,
+      "top_node": "Sort",
+      "buffers": 8,
+      "access": [
+        "Index Scan transaction (uq_transaction_ref)",
+        "Index Scan transaction_status_history (pk_transaction_status_history)"
+      ],
+      "timed_out": false
+    },
+    {
+      "query": "Q4",
+      "title": "Posting: amount already sent today by the busiest wallet, for the daily KYC limit (BR-04)",
+      "rows": 1,
+      "result_md5": "33bf107c9f457ed288a354a36a2dee66",
+      "median_ms": 3.222,
+      "min_ms": 2.995,
+      "max_ms": 3.693,
+      "planning_ms": 0.135,
+      "top_node": "Aggregate",
+      "buffers": 2891,
+      "access": [
+        "Index Scan wallet (uq_wallet_number)",
+        "Index Scan transaction (ix_transaction_source_wallet)"
+      ],
+      "timed_out": false
+    },
+    {
+      "query": "Q5",
+      "title": "Finance: reconcile every wallet's stored balance against the ledger (FR-08)",
+      "rows": 0,
+      "result_md5": "d751713988987e9331980363e24189ce",
+      "median_ms": 1612.618,
+      "min_ms": 1058.92,
+      "max_ms": 1692.414,
+      "planning_ms": 0.177,
+      "top_node": "Hash Left Join",
+      "buffers": 26736,
+      "access": [
+        "Seq Scan wallet",
+        "Parallel Seq Scan ledger_entry"
+      ],
+      "timed_out": false
+    },
+    {
+      "query": "Q6",
+      "title": "Fraud: wallets with 5 or more outgoing payments in one day (FR-09)",
+      "rows": 6,
+      "result_md5": "d50727fb1de3fe1c5c74cb83e015b506",
+      "median_ms": 147.619,
+      "min_ms": 135.265,
+      "max_ms": 160.641,
+      "planning_ms": 0.36,
+      "top_node": "Sort",
+      "buffers": 24477,
+      "access": [
+        "Parallel Seq Scan transaction",
+        "Parallel Seq Scan wallet"
+      ],
+      "timed_out": false
+    },
+    {
+      "query": "Q7",
+      "title": "Settlement: October 2026 takings per merchant and biller (FR-10)",
+      "rows": 2000,
+      "result_md5": "61a7ff36fdc19835f83d0a05b7b2e624",
+      "median_ms": 1777.753,
+      "min_ms": 1379.026,
+      "max_ms": 2571.539,
+      "planning_ms": 1.185,
+      "top_node": "Sort",
+      "buffers": 1399934,
+      "access": [
+        "Parallel Index Scan wallet (uq_wallet_merchant)",
+        "Index Scan transaction (ix_transaction_destination_wallet)",
+        "Index Scan merchant (pk_merchant)"
+      ],
+      "timed_out": false
+    },
+    {
+      "query": "Q8",
+      "title": "Operations: failed transactions in the last 7 days, by channel and reason",
+      "rows": 6,
+      "result_md5": "44429533b69ae143d99324ab4dbe1816",
+      "median_ms": 112.424,
+      "min_ms": 98.762,
+      "max_ms": 184.417,
+      "planning_ms": 0.379,
+      "top_node": "Sort",
+      "buffers": 26287,
+      "access": [
+        "Parallel Seq Scan transaction",
+        "Index Scan transaction_status_history (pk_transaction_status_history)"
+      ],
+      "timed_out": false
+    },
+    {
+      "query": "Q9",
+      "title": "Marketing: the 50 largest active customer wallets with no outgoing payment in 90 days",
+      "median_ms": null,
+      "timed_out": true,
+      "top_node": "Limit",
+      "access": [
+        "Parallel Seq Scan wallet",
+        "Seq Scan transaction"
+      ],
+      "rows": null,
+      "result_md5": null,
+      "buffers": null
+    }
+  ]
+}

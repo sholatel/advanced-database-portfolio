@@ -1,0 +1,50 @@
+Q6: Fraud: wallets with 5 or more outgoing payments in one day (FR-09)
+phase: before
+
+SELECT w.wallet_number, count(*) AS outgoing, sum(t.amount_kobo) AS total_kobo
+FROM transaction t
+JOIN wallet w ON w.wallet_id = t.source_wallet_id
+WHERE t.created_at >= '2026-10-30 00:00:00+00' AND t.created_at < '2026-10-31 00:00:00+00'
+  AND t.transaction_type IN ('TRANSFER', 'MERCHANT_PAYMENT', 'BILL_PAYMENT')
+GROUP BY w.wallet_number
+HAVING count(*) >= 5
+ORDER BY outgoing DESC, w.wallet_number;
+
+Sort  (cost=37147.62..37151.59 rows=1586 width=51) (actual time=145.377..147.569 rows=6 loops=1)
+  Sort Key: (count(*)) DESC, w.wallet_number
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=8378 read=16099
+  ->  Finalize GroupAggregate  (cost=36450.17..37063.32 rows=1586 width=51) (actual time=133.512..147.559 rows=6 loops=1)
+        Group Key: w.wallet_number
+        Filter: (count(*) >= 5)
+        Rows Removed by Filter: 5203
+        Buffers: shared hit=8378 read=16099
+        ->  Gather Merge  (cost=36450.17..36952.31 rows=3964 width=51) (actual time=133.491..143.083 rows=5397 loops=1)
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=8378 read=16099
+              ->  Partial GroupAggregate  (cost=35450.14..35494.74 rows=1982 width=51) (actual time=128.046..129.901 rows=1799 loops=3)
+                    Group Key: w.wallet_number
+                    Buffers: shared hit=8378 read=16099
+                    ->  Sort  (cost=35450.14..35455.10 rows=1982 width=19) (actual time=128.031..128.240 rows=1851 loops=3)
+                          Sort Key: w.wallet_number
+                          Sort Method: quicksort  Memory: 215kB
+                          Buffers: shared hit=8378 read=16099
+                          Worker 0:  Sort Method: quicksort  Memory: 115kB
+                          Worker 1:  Sort Method: quicksort  Memory: 124kB
+                          ->  Parallel Hash Join  (cost=5169.47..35341.60 rows=1982 width=19) (actual time=115.829..118.913 rows=1851 loops=3)
+                                Hash Cond: (t.source_wallet_id = w.wallet_id)
+                                Buffers: shared hit=8302 read=16099
+                                ->  Parallel Seq Scan on transaction t  (cost=0.00..30166.93 rows=1982 width=16) (actual time=93.528..95.152 rows=1851 loops=3)
+                                      Filter: ((created_at >= '2026-10-30 00:00:00+00'::timestamp with time zone) AND (created_at < '2026-10-31 00:00:00+00'::timestamp with time zone) AND (transaction_type = ANY ('{TRANSFER,MERCHANT_PAYMENT,BILL_PAYMENT}'::text[])))
+                                      Rows Removed by Filter: 365185
+                                      Buffers: shared hit=5549 read=16099
+                                ->  Parallel Hash  (cost=3809.21..3809.21 rows=108821 width=19) (actual time=21.540..21.541 rows=34004 loops=3)
+                                      Buckets: 262144  Batches: 1  Memory Usage: 7680kB
+                                      Buffers: shared hit=2721
+                                      ->  Parallel Seq Scan on wallet w  (cost=0.00..3809.21 rows=108821 width=19) (actual time=0.011..6.894 rows=34004 loops=3)
+                                            Buffers: shared hit=2721
+Planning:
+  Buffers: shared hit=18
+Planning Time: 0.360 ms
+Execution Time: 147.619 ms

@@ -1,0 +1,56 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Business-rule consistency checks over the full volume
+Captured at : 2026-11-10T23:11:55+01:00 (Africa/Lagos, WAT) | 2026-11-10T22:11:55Z (UTC)
+Command     : docker compose exec -T postgres psql -U postgres -d oworail -X -v ON_ERROR_STOP=1 -v brief=1 -f /workspace/portfolio-1-database-design/sql/tests/consistency_checks.sql
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 31.647 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : postgres (PostgreSQL) 16.15 (Debian 16.15-1.pgdg13+2)  [service 'postgres' in docker-compose.yml]
+================================================================================
+SET
+SELECT 13
+     rule      |                                  check_description                                   | violations | result 
+---------------+--------------------------------------------------------------------------------------+------------+--------
+ BR-14 / FR-08 | stored balance equals ledger balance for every wallet                                |          0 | PASS
+ BR-13         | every posted transaction has 2+ lines and debits = credits                           |          0 | PASS
+ BR-13         | FAILED and PENDING transactions have no ledger lines                                 |          0 | PASS
+ BR-13         | the whole ledger balances (sum of all wallet balances is 0)                          |          0 | PASS
+ BR-15         | current status equals the latest status-history row                                  |          0 | PASS
+ BR-15         | status history starts with PENDING and has no gaps                                   |          0 | PASS
+ BR-16         | every reversal: original REVERSED, reversal SUCCESSFUL, same amount, mirrored ledger |          0 | PASS
+ BR-16         | every REVERSED transaction has a reversal record                                     |          0 | PASS
+ BR-02 / BR-06 | every customer has at least one phone and one wallet                                 |          0 | PASS
+ BR-06         | every merchant has exactly one wallet                                                |          0 | PASS
+ BR-10         | wallet types match the transaction type                                              |          0 | PASS
+ BR-12         | stored fee and rule match fee_for() at the time of the transaction                   |          0 | PASS
+ BR-17         | every reversal and KYC decision has an audit record                                  |          0 | PASS
+
+DO
+
+== wallet balances (FR-08 reconciliation)
+ wallet_number | wallet_type | status |  balance_kobo  | ledger_balance_kobo | difference_kobo 
+---------------+-------------+--------+----------------+---------------------+-----------------
+ 3000000001    | CUSTOMER    | ACTIVE |        1750000 |             1750000 |               0
+ 3000000002    | CUSTOMER    | ACTIVE |          50000 |               50000 |               0
+ 3000000003    | CUSTOMER    | ACTIVE |       13634000 |            13634000 |               0
+ 3000000004    | CUSTOMER    | ACTIVE |         100000 |              100000 |               0
+ 3000000005    | CUSTOMER    | FROZEN |              0 |                   0 |               0
+ 3000000042    | MERCHANT    | ACTIVE |         250000 |              250000 |               0
+ 3000000043    | MERCHANT    | ACTIVE |         150000 |              150000 |               0
+ 3000000101    | MERCHANT    | ACTIVE |        5000000 |             5000000 |               0
+ 3000000102    | MERCHANT    | ACTIVE |        1200000 |             1200000 |               0
+ 9000000001    | SYSTEM      | ACTIVE |     1975520050 |          1975520050 |               0
+ 9000000002    | SYSTEM      | ACTIVE | -1376450350000 |      -1376450350000 |               0
+ 9000000003    | SYSTEM      | ACTIVE |              0 |                   0 |               0
+
+
+== the 2 November 2026 report from normalisation.md, rebuilt by joins
+ transaction_ref |     time / type / channel      |   amount / fee / rule   |       sender, tier, daily limit       |         sender_phones         | source wallet (balance) |                destination                |                           ledger_lines                            |                          status_history                           |                               reversal_of                                
+-----------------+--------------------------------+-------------------------+---------------------------------------+-------------------------------+-------------------------+-------------------------------------------+-------------------------------------------------------------------+-------------------------------------------------------------------+--------------------------------------------------------------------------
+ OWR000000000101 | 09:15:02 TRANSFER APP          | 500000 / 1000 / rule 2  | Adaeze Okafor, Tier 2, daily 20000000 | +2348030000001 +2349050000001 | 3000000001 (1750000)    | 3000000002 Tunde Bakare                   | 1 3000000001 D 501000; 2 3000000002 C 500000; 3 9000000001 C 1000 | 1 PENDING; 2 SUCCESSFUL; 3 REVERSED "reversed by OWR000000000104" | -
+ OWR000000000102 | 11:40:17 MERCHANT_PAYMENT USSD | 250000 / 0 / -          | Adaeze Okafor, Tier 2, daily 20000000 | +2348030000001 +2349050000001 | 3000000001 (1750000)    | 3000000042 Mama Put Kitchen MRC00042 FOOD | 1 3000000001 D 250000; 2 3000000042 C 250000                      | 1 PENDING; 2 SUCCESSFUL                                           | -
+ OWR000000000103 | 13:05:55 TRANSFER WEB          | 1000000 / 2500 / rule 3 | Tunde Bakare, Tier 1, daily 5000000   | +2348120000002                | 3000000002 (50000)      | 3000000001 Adaeze Okafor                  | (none)                                                            | 1 PENDING; 2 FAILED "insufficient funds"                          | -
+ OWR000000000104 | 16:20:41 REVERSAL WEB          | 500000 / 0 / -          | Tunde Bakare, Tier 1, daily 5000000   | +2348120000002                | 3000000002 (50000)      | 3000000001 Adaeze Okafor                  | 1 3000000002 D 500000; 2 9000000001 D 1000; 3 3000000001 C 501000 | 1 PENDING; 2 SUCCESSFUL                                           | OWR000000000101 "duplicate transfer reported by customer" support.ifeoma

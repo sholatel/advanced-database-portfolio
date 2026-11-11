@@ -1,0 +1,15 @@
+# Before and after
+
+Median execution time in ms (`EXPLAIN ANALYZE`). Buffers are the shared pages each plan touched (hit + read); unlike time, they don't depend on what else the machine is doing. 'Same result' compares a hash of every row returned in each phase that finished.
+
+| query   | title                                                                                     | before ms   | indexes ms   |   final ms | before buffers   | indexes buffers   |   final buffers | speed-up   | same result   |
+|---------|-------------------------------------------------------------------------------------------|-------------|--------------|------------|------------------|-------------------|-----------------|------------|---------------|
+| Q1      | Support: find a customer and their wallets by phone number (FR-01)                        | 0.066       | 0.097        |      0.055 | 11               | 11                |              11 | 1.2x       | yes           |
+| Q2      | Wallet statement, first page: the 20 latest ledger lines of the busiest wallet (FR-07)    | 14.579      | 18.965       |      4.173 | 15041            | 15054             |            2966 | 3.5x       | yes           |
+| Q3      | Support: a transaction and its status history by reference                                | 0.056       | 0.07         |      0.053 | 8                | 8                 |               8 | 1.1x       | yes           |
+| Q4      | Posting: amount already sent today by the busiest wallet, for the daily KYC limit (BR-04) | 3.222       | 0.073        |      0.052 | 2891             | 8                 |               8 | 62.0x      | yes           |
+| Q5      | Finance: reconcile every wallet's stored balance against the ledger (FR-08)               | 1612.618    | 1510.531     |    768.285 | 26736            | 26825             |           17062 | 2.1x       | yes           |
+| Q6      | Fraud: wallets with 5 or more outgoing payments in one day (FR-09)                        | 147.619     | 22.123       |     25.088 | 24477            | 20881             |           20881 | 5.9x       | yes           |
+| Q7      | Settlement: October 2026 takings per merchant and biller (FR-10)                          | 1777.753    | 276.249      |      3.561 | 1399934          | 311250            |             124 | 499.2x     | yes           |
+| Q8      | Operations: failed transactions in the last 7 days, by channel and reason                 | 112.424     | 25.354       |     32.739 | 26287            | 5860              |            5667 | 3.4x       | yes           |
+| Q9      | Marketing: the 50 largest active customer wallets with no outgoing payment in 90 days     | timeout     | timeout      |    133.429 | -                | -                 |            7573 | >225x      | yes           |

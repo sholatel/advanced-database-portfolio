@@ -104,3 +104,26 @@ This log records, milestone by milestone, how I (Yusuf O. Sholadoye) used an AI 
 - No `.env` secret appears in any evidence file; all new files have LF line endings.
 
 ---
+
+## M5–M6: Query processing and optimisation (10 Nov 2026)
+
+**My decisions:** a dataset of about one million transactions on the Portfolio 1 schema; a workload of queries taken from OwoRail's real operations (support lookups, statements, the KYC limit check, reconciliation, fraud, settlement, failure reporting, dormant wallets); measuring with `EXPLAIN (ANALYZE, BUFFERS)` under the server's default settings; optimising in separate, measured steps.
+
+**Design decisions (approved at review):**
+- The volume data is generated in SQL from hashes of the row number, so it is identical on every run, and loaded in bulk with the two balanced-ledger triggers switched off; the full Portfolio 1 consistency checks are run over it afterwards instead.
+- Buffers are recorded next to times, because timings on a shared laptop vary, and every phase checks that each query returns exactly the same rows.
+- A 30-second limit per query, so the NOT IN baseline is recorded as "did not finish" instead of running for hours.
+- Composite and covering indexes that replace three single-column foreign-key indexes; a higher statistics target for `ledger_entry.wallet_id`; a materialised view for monthly settlement; NOT EXISTS for the dormant-wallet query; a statement query rewritten to read the transaction indexes backwards.
+- Alternatives that were tested and rejected are kept as evidence: more work_mem for the reconciliation, pre-aggregation for settlement, the partial index for failures.
+- MongoDB is stopped during the measurements; its healthcheck was taking CPU.
+
+**AI assistance used:** generated the volume generator, the workload and rewritten queries, the index and tuning scripts, the experiment, size and write-cost scripts, and the Python runner and pipeline, and drafted the Portfolio 2 README and the performance analysis, to my specification.
+
+**How it was verified:**
+- The volume dataset (1,101,109 transactions, 2,870,951 ledger lines) passed all 13 consistency checks with zero violations.
+- All nine queries returned identical rows (hash of every row) in each phase that finished; the NOT IN and NOT EXISTS versions of Q9 were compared directly and match.
+- The whole pipeline ran from a fresh build with every step exiting 0; no `.env` secret appears in any output.
+- Figures in the analysis were checked against the captured plans; two that came from exploratory runs were corrected or removed.
+- Honest negatives kept in the analysis: the partial index was never chosen by the planner, and the indexes made posting about 16 % slower and more than doubled index space.
+
+---

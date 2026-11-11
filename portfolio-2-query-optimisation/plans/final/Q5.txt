@@ -1,0 +1,38 @@
+Q5: Finance: reconcile every wallet's stored balance against the ledger (FR-08)
+phase: final
+
+SELECT wallet_number, balance_kobo, ledger_balance_kobo, difference_kobo
+FROM v_wallet_balance
+WHERE difference_kobo <> 0;
+
+Hash Left Join  (cost=123711.40..129802.23 rows=190509 width=83) (actual time=765.643..765.799 rows=0 loops=1)
+  Hash Cond: (w.wallet_id = l.wallet_id)
+  Filter: (((w.balance_kobo)::numeric - COALESCE(l.ledger_balance_kobo, '0'::numeric)) <> '0'::numeric)
+  Rows Removed by Filter: 102012
+  Buffers: shared hit=23 read=17039
+  ->  Seq Scan on wallet w  (cost=0.00..4635.66 rows=191466 width=27) (actual time=0.024..22.376 rows=102012 loops=1)
+        Buffers: shared hit=1 read=2720
+  ->  Hash  (cost=122599.64..122599.64 rows=88941 width=40) (actual time=662.645..662.799 rows=102010 loops=1)
+        Buckets: 131072  Batches: 1  Memory Usage: 5807kB
+        Buffers: shared hit=22 read=14319
+        ->  Subquery Scan on l  (cost=1000.45..122599.64 rows=88941 width=40) (actual time=181.131..616.353 rows=102010 loops=1)
+              Buffers: shared hit=22 read=14319
+              ->  Finalize GroupAggregate  (cost=1000.45..121710.23 rows=88941 width=40) (actual time=181.127..601.198 rows=102010 loops=1)
+                    Group Key: ledger_entry.wallet_id
+                    Buffers: shared hit=22 read=14319
+                    ->  Gather Merge  (cost=1000.45..119264.35 rows=177882 width=40) (actual time=181.003..496.547 rows=109959 loops=1)
+                          Workers Planned: 2
+                          Workers Launched: 2
+                          Buffers: shared hit=22 read=14319
+                          ->  Partial GroupAggregate  (cost=0.43..97732.33 rows=88941 width=40) (actual time=131.999..464.488 rows=36653 loops=3)
+                                Group Key: ledger_entry.wallet_id
+                                Buffers: shared hit=22 read=14319
+                                ->  Parallel Index Only Scan using ix_ledger_entry_wallet_amount on ledger_entry  (cost=0.43..84658.27 rows=1196230 width=22) (actual time=0.160..261.857 rows=956984 loops=3)
+                                      Heap Fetches: 71
+                                      Buffers: shared hit=22 read=14319
+Planning Time: 0.379 ms
+JIT:
+  Functions: 25
+  Options: Inlining false, Optimization false, Expressions true, Deforming true
+  Timing: Generation 3.387 ms, Inlining 0.000 ms, Optimization 1.213 ms, Emission 32.254 ms, Total 36.854 ms
+Execution Time: 768.285 ms

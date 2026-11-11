@@ -1,0 +1,36 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Create the workload indexes
+Captured at : 2026-11-10T23:13:35+01:00 (Africa/Lagos, WAT) | 2026-11-10T22:13:35Z (UTC)
+Command     : docker compose exec -T postgres psql -U postgres -d oworail -X -v ON_ERROR_STOP=1 -f /workspace/portfolio-2-query-optimisation/indexes.sql
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 11.233 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : postgres (PostgreSQL) 16.15 (Debian 16.15-1.pgdg13+2)  [service 'postgres' in docker-compose.yml]
+================================================================================
+SET
+SET
+CREATE INDEX
+DROP INDEX
+CREATE INDEX
+DROP INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+DROP INDEX
+RESET
+ANALYZE
+             index_name             |  table_name  |  size   
+------------------------------------+--------------+---------
+ ix_ledger_entry_wallet_amount      | ledger_entry | 111 MB
+ pk_ledger_entry                    | ledger_entry | 87 MB
+ ix_transaction_source_created      | transaction  | 93 MB
+ ix_transaction_destination_created | transaction  | 83 MB
+ ix_transaction_created             | transaction  | 64 MB
+ uq_transaction_ref                 | transaction  | 44 MB
+ uq_transaction_idempotency_key     | transaction  | 42 MB
+ pk_transaction                     | transaction  | 24 MB
+ ix_transaction_fee_rule            | transaction  | 7000 kB
+ ix_transaction_failed_created      | transaction  | 680 kB

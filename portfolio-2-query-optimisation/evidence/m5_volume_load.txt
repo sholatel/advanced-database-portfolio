@@ -1,0 +1,142 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Rebuild the database from scratch
+Captured at : 2026-11-10T23:06:00+01:00 (Africa/Lagos, WAT) | 2026-11-10T22:06:00Z (UTC)
+Command     : docker compose exec -T postgres psql -U postgres -d oworail -X -v ON_ERROR_STOP=1 -q -f /workspace/portfolio-1-database-design/sql/build.sql
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 2.446 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : postgres (PostgreSQL) 16.15 (Debian 16.15-1.pgdg13+2)  [service 'postgres' in docker-compose.yml]
+================================================================================
+== 01 roles
+      rolname       | rolcanlogin | rolsuper | rolinherit 
+--------------------+-------------+----------+------------
+ oworail_analyst    | f           | f        | t
+ oworail_app        | f           | f        | t
+ oworail_auditor    | f           | f        | t
+ oworail_compliance | f           | f        | t
+ oworail_owner      | f           | f        | t
+ oworail_support    | f           | f        | t
+
+== 02 schema, constraints, indexes
+psql:/workspace/portfolio-1-database-design/sql/02_schema.sql:10: NOTICE:  extension "btree_gist" already exists, skipping
+== 03 rules: fee function, ledger triggers, views
+== 04 procedures
+== 05 privileges
+           object           | kind  | app  | support | compliance | analyst | auditor 
+----------------------------+-------+------+---------+------------+---------+---------
+ audit_log                  | table |      |         |            |         | r
+ customer                   | table | r    | r       | r          |         | r
+ customer_phone             | table | r    | r       | r          |         | r
+ fee_rule                   | table | r    |         |            | r       | r
+ kyc_profile                | table |      |         | r          |         | r
+ kyc_tier                   | table | r    | r       | r          | r       | r
+ ledger_entry               | table | r    | r       |            | r       | r
+ merchant                   | table | r    | r       |            | r       | r
+ reversal                   | table | r    | r       |            | r       | r
+ saved_beneficiary          | table | rawd | r       |            |         | r
+ transaction                | table | r    | r       |            | r       | r
+ transaction_status_history | table | r    | r       |            | r       | r
+ wallet                     | table | r    | r       |            | r       | r
+ v_customer                 | view  | r    | r       | r          |         | r
+ v_transaction              | view  | r    | r       |            | r       | r
+ v_wallet_balance           | view  | r    | r       |            | r       | r
+
+== 06 seed data
+== row counts
+         table_name         | rows 
+----------------------------+------
+ customer                   |    5
+ customer_phone             |    6
+ kyc_tier                   |    3
+ kyc_profile                |    4
+ merchant                   |    4
+ wallet                     |   12
+ saved_beneficiary          |    3
+ fee_rule                   |    5
+ transaction                |   12
+ ledger_entry               |   24
+ transaction_status_history |   25
+ reversal                   |    1
+ audit_log                  |   14
+
+== build complete
+
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Load the volume dataset
+Captured at : 2026-11-10T23:06:04+01:00 (Africa/Lagos, WAT) | 2026-11-10T22:06:04Z (UTC)
+Command     : docker compose exec -T postgres psql -U postgres -d oworail -X -v ON_ERROR_STOP=1 -f /workspace/portfolio-2-query-optimisation/data/generate_volume.sql
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 349.694 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : postgres (PostgreSQL) 16.15 (Debian 16.15-1.pgdg13+2)  [service 'postgres' in docker-compose.yml]
+================================================================================
+SET
+SET
+CREATE FUNCTION
+BEGIN
+DO
+ALTER TABLE
+ALTER TABLE
+-- customers, phones, KYC, wallets
+INSERT 0 100000
+SELECT 100000
+CREATE INDEX
+INSERT 0 129960
+INSERT 0 100000
+INSERT 0 95028
+INSERT 0 100000
+-- merchants and billers
+INSERT 0 2000
+INSERT 0 2000
+SELECT 100000
+CREATE INDEX
+SELECT 2000
+CREATE INDEX
+-- payments and transfers
+SELECT 1000000
+CREATE TABLE
+INSERT 0 1000000
+-- reversals
+INSERT 0 1097
+UPDATE 1097
+-- opening funding per customer
+INSERT 0 100000
+-- transactions, in time order
+INSERT 0 1101097
+SELECT 1101097
+CREATE INDEX
+-- ledger lines
+INSERT 0 2867636
+INSERT 0 3291
+-- status history, reversal links, audit
+INSERT 0 2203291
+INSERT 0 1097
+INSERT 0 1097
+-- wallet balances from the ledger
+UPDATE 102002
+ALTER TABLE
+ALTER TABLE
+COMMIT
+-- vacuum and fresh planner statistics
+VACUUM
+         table_name         |  rows   | table_size | index_size 
+----------------------------+---------+------------+------------
+ transaction                | 1101109 | 168 MB     | 140 MB
+ ledger_entry               | 2870951 | 187 MB     | 112 MB
+ transaction_status_history | 2203316 | 128 MB     | 66 MB
+ wallet                     |  102012 | 21 MB      | 18 MB
+ customer                   |  100005 | 13 MB      | 9384 kB
+ kyc_profile                |  100004 | 10 MB      | 8192 kB
+ audit_log                  |   96139 | 14 MB      | 2120 kB
+ customer_phone             |  129966 | 6664 kB    | 8432 kB
+ merchant                   |    2004 | 248 kB     | 144 kB
+ reversal                   |    1098 | 144 kB     | 112 kB
+ saved_beneficiary          |      -1 | 16 kB      | 32 kB
+ kyc_tier                   |      -1 | 16 kB      | 32 kB
+ fee_rule                   |      -1 | 16 kB      | 24 kB

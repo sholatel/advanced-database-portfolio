@@ -1,0 +1,21 @@
+================================================================================
+OwoRail Advanced Database Portfolio - evidence capture
+Title       : Baseline: workload timings and plans
+Captured at : 2026-11-10T23:12:40+01:00 (Africa/Lagos, WAT) | 2026-11-10T22:12:40Z (UTC)
+Command     : 'C:\Users\user\projects\advanced-database-portfolio\.venv\Scripts\python.exe' portfolio-2-query-optimisation/scripts/run_plans.py --phase before --queries queries.sql
+Working dir : <repository root>
+Exit code   : 0
+Duration    : 54.239 s
+Host        : Windows 11 (10.0.26200) | Python 3.13.5
+Tools       : Docker version 28.4.0, build d8eb465 | Docker Compose version v2.39.2-desktop.1
+Server      : postgres (PostgreSQL) 16.15 (Debian 16.15-1.pgdg13+2)  [service 'postgres' in docker-compose.yml]
+================================================================================
+Q1         0.066 ms  Support: find a customer and their wallets by phone number (FR-01)
+Q2        14.579 ms  Wallet statement, first page: the 20 latest ledger lines of the busiest wallet (FR-07)
+Q3         0.056 ms  Support: a transaction and its status history by reference
+Q4         3.222 ms  Posting: amount already sent today by the busiest wallet, for the daily KYC limit (BR-04)
+Q5      1612.618 ms  Finance: reconcile every wallet's stored balance against the ledger (FR-08)
+Q6       147.619 ms  Fraud: wallets with 5 or more outgoing payments in one day (FR-09)
+Q7      1777.753 ms  Settlement: October 2026 takings per merchant and biller (FR-10)
+Q8       112.424 ms  Operations: failed transactions in the last 7 days, by channel and reason
+Q9          TIMEOUT  Marketing: the 50 largest active customer wallets with no outgoing payment in 90 days

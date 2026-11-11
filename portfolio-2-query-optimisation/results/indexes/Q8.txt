@@ -1,0 +1,13 @@
+Q8: Operations: failed transactions in the last 7 days, by channel and reason
+6 rows (first 25 shown)
+
++-----------+----------------------+------------+
+| channel   | reason               |   failures |
+|-----------+----------------------+------------|
+| APP       | insufficient funds   |        632 |
+| APP       | daily limit exceeded |        190 |
+| USSD      | insufficient funds   |        186 |
+| WEB       | insufficient funds   |         78 |
+| USSD      | daily limit exceeded |         41 |
+| WEB       | daily limit exceeded |         24 |
++-----------+----------------------+------------+

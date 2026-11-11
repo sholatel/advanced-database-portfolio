@@ -123,8 +123,12 @@ $$;
 
 \echo
 \echo '== wallet balances (FR-08 reconciliation)'
+-- with -v brief=1 (large datasets) only the seed wallets are listed
 SELECT wallet_number, wallet_type, status, balance_kobo, ledger_balance_kobo, difference_kobo
 FROM v_wallet_balance
+\if :{?brief}
+WHERE wallet_number LIKE '30%' OR wallet_number LIKE '90%'
+\endif
 ORDER BY wallet_number;
 
 \echo

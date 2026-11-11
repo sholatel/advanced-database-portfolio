@@ -1,0 +1,36 @@
+Q2: Wallet statement, first page: the 20 latest ledger lines of the busiest wallet (FR-07)
+phase: before
+
+SELECT t.created_at, t.transaction_ref, t.transaction_type, l.entry_type, l.amount_kobo, t.status
+FROM ledger_entry l
+JOIN transaction t ON t.transaction_id = l.transaction_id
+WHERE l.wallet_id = (SELECT wallet_id FROM wallet WHERE wallet_number = '3100000001')
+ORDER BY t.created_at DESC, t.transaction_id DESC
+LIMIT 20;
+
+Limit  (cost=1116.61..1116.66 rows=20 width=67) (actual time=14.487..14.492 rows=20 loops=1)
+  Buffers: shared hit=15041
+  InitPlan 1 (returns $0)
+    ->  Index Scan using uq_wallet_number on wallet  (cost=0.42..8.44 rows=1 width=8) (actual time=0.015..0.016 rows=1 loops=1)
+          Index Cond: (wallet_number = '3100000001'::text)
+          Buffers: shared hit=4
+  ->  Sort  (cost=1108.17..1108.39 rows=90 width=67) (actual time=14.485..14.488 rows=20 loops=1)
+        Sort Key: t.created_at DESC, t.transaction_id DESC
+        Sort Method: top-N heapsort  Memory: 30kB
+        Buffers: shared hit=15041
+        ->  Nested Loop  (cost=5.55..1105.77 rows=90 width=67) (actual time=1.018..13.425 rows=3046 loops=1)
+              Buffers: shared hit=15041
+              ->  Bitmap Heap Scan on ledger_entry l  (cost=5.13..349.72 rows=90 width=22) (actual time=1.000..4.168 rows=3046 loops=1)
+                    Recheck Cond: (wallet_id = $0)
+                    Heap Blocks: exact=2848
+                    Buffers: shared hit=2857
+                    ->  Bitmap Index Scan on ix_ledger_entry_wallet  (cost=0.00..5.10 rows=90 width=0) (actual time=0.563..0.564 rows=3046 loops=1)
+                          Index Cond: (wallet_id = $0)
+                          Buffers: shared hit=9
+              ->  Index Scan using pk_transaction on transaction t  (cost=0.43..8.40 rows=1 width=53) (actual time=0.003..0.003 rows=1 loops=3046)
+                    Index Cond: (transaction_id = l.transaction_id)
+                    Buffers: shared hit=12184
+Planning:
+  Buffers: shared hit=150
+Planning Time: 0.480 ms
+Execution Time: 14.579 ms

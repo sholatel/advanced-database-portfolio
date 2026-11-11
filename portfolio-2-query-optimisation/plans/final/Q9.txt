@@ -1,0 +1,39 @@
+Q9: Marketing: the 50 largest active customer wallets with no outgoing payment in 90 days
+phase: final
+
+-- NOT EXISTS lets the planner use an anti-join; NOT IN can't, because of how it treats NULLs
+SELECT w.wallet_number, w.balance_kobo
+FROM wallet w
+WHERE w.wallet_type = 'CUSTOMER' AND w.status = 'ACTIVE' AND w.balance_kobo > 0
+  AND NOT EXISTS (SELECT 1 FROM transaction t
+                  WHERE t.source_wallet_id = w.wallet_id
+                    AND t.created_at >= '2026-08-02 00:00:00+00'
+                    AND t.created_at <  '2026-10-31 00:00:00+00')
+ORDER BY w.balance_kobo DESC, w.wallet_number
+LIMIT 50;
+
+Limit  (cost=17579.22..17621.33 rows=50 width=19) (actual time=112.596..132.049 rows=50 loops=1)
+  Buffers: shared hit=7573, temp read=268 written=292
+  ->  Nested Loop Anti Join  (cost=17579.22..132140.95 rows=136022 width=19) (actual time=112.594..131.970 rows=50 loops=1)
+        Buffers: shared hit=7573, temp read=268 written=292
+        ->  Gather Merge  (cost=17578.80..38962.41 rows=187624 width=27) (actual time=112.117..122.152 rows=1597 loops=1)
+              Workers Planned: 1
+              Workers Launched: 1
+              Buffers: shared hit=2767, temp read=268 written=292
+              ->  Sort  (cost=16578.79..16854.70 rows=110367 width=27) (actual time=85.052..85.493 rows=1329 loops=2)
+                    Sort Key: w.balance_kobo DESC, w.wallet_number
+                    Sort Method: external merge  Disk: 2328kB
+                    Buffers: shared hit=2767, temp read=268 written=292
+                    Worker 0:  Sort Method: quicksort  Memory: 3611kB
+                    ->  Parallel Seq Scan on wallet w  (cost=0.00..4691.97 rows=110367 width=27) (actual time=0.032..31.052 rows=50002 loops=2)
+                          Filter: ((balance_kobo > 0) AND (wallet_type = 'CUSTOMER'::text) AND (status = 'ACTIVE'::text))
+                          Rows Removed by Filter: 1004
+                          Buffers: shared hit=2721
+        ->  Index Only Scan using ix_transaction_source_created on transaction t  (cost=0.43..0.90 rows=9 width=8) (actual time=0.005..0.005 rows=1 loops=1597)
+              Index Cond: ((source_wallet_id = w.wallet_id) AND (created_at >= '2026-08-02 00:00:00+00'::timestamp with time zone) AND (created_at < '2026-10-31 00:00:00+00'::timestamp with time zone))
+              Heap Fetches: 0
+              Buffers: shared hit=4806
+Planning:
+  Buffers: shared hit=106
+Planning Time: 0.543 ms
+Execution Time: 133.429 ms

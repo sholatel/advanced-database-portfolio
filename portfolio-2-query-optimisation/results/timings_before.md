@@ -1,0 +1,17 @@
+# Timings: before
+
+Queries: `queries.sql`. Median of 5 runs of `EXPLAIN (ANALYZE, BUFFERS)` after one warm-up run; timeout 30 s.
+
+Settings: server_version = 16.15 (Debian 16.15-1.pgdg13+2), shared_buffers = 128MB, work_mem = 4MB, effective_cache_size = 4GB, random_page_cost = 4, max_parallel_workers_per_gather = 2, jit = on
+
+| query   | title                                                                                     | median ms   |   buffers |   rows | access paths                                                                                                                                           |
+|---------|-------------------------------------------------------------------------------------------|-------------|-----------|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Q1      | Support: find a customer and their wallets by phone number (FR-01)                        | 0.066       |        11 |      1 | Index Scan customer_phone (pk_customer_phone); Index Scan wallet (ix_wallet_customer); Index Scan customer (pk_customer)                               |
+| Q2      | Wallet statement, first page: the 20 latest ledger lines of the busiest wallet (FR-07)    | 14.579      |     15041 |     20 | Index Scan wallet (uq_wallet_number); Bitmap Heap Scan ledger_entry; Bitmap Index Scan ix_ledger_entry_wallet; Index Scan transaction (pk_transaction) |
+| Q3      | Support: a transaction and its status history by reference                                | 0.056       |         8 |      3 | Index Scan transaction (uq_transaction_ref); Index Scan transaction_status_history (pk_transaction_status_history)                                     |
+| Q4      | Posting: amount already sent today by the busiest wallet, for the daily KYC limit (BR-04) | 3.222       |      2891 |      1 | Index Scan wallet (uq_wallet_number); Index Scan transaction (ix_transaction_source_wallet)                                                            |
+| Q5      | Finance: reconcile every wallet's stored balance against the ledger (FR-08)               | 1612.618    |     26736 |      0 | Seq Scan wallet; Parallel Seq Scan ledger_entry                                                                                                        |
+| Q6      | Fraud: wallets with 5 or more outgoing payments in one day (FR-09)                        | 147.619     |     24477 |      6 | Parallel Seq Scan transaction; Parallel Seq Scan wallet                                                                                                |
+| Q7      | Settlement: October 2026 takings per merchant and biller (FR-10)                          | 1777.753    |   1399934 |   2000 | Parallel Index Scan wallet (uq_wallet_merchant); Index Scan transaction (ix_transaction_destination_wallet); Index Scan merchant (pk_merchant)         |
+| Q8      | Operations: failed transactions in the last 7 days, by channel and reason                 | 112.424     |     26287 |      6 | Parallel Seq Scan transaction; Index Scan transaction_status_history (pk_transaction_status_history)                                                   |
+| Q9      | Marketing: the 50 largest active customer wallets with no outgoing payment in 90 days     | timeout     |           |        | Parallel Seq Scan wallet; Seq Scan transaction                                                                                                         |

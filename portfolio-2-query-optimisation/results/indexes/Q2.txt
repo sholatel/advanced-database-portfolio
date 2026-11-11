@@ -1,0 +1,27 @@
+Q2: Wallet statement, first page: the 20 latest ledger lines of the busiest wallet (FR-07)
+20 rows (first 25 shown)
+
++---------------------------+-------------------+--------------------+--------------+---------------+------------+
+| created_at                | transaction_ref   | transaction_type   | entry_type   |   amount_kobo | status     |
+|---------------------------+-------------------+--------------------+--------------+---------------+------------|
+| 2026-10-31 23:12:23+00:00 | OWR100000615211   | TRANSFER           | DEBIT        |       1312500 | SUCCESSFUL |
+| 2026-10-31 22:10:58+00:00 | OWR100000813688   | MERCHANT_PAYMENT   | DEBIT        |        185000 | SUCCESSFUL |
+| 2026-10-31 20:45:07+00:00 | OWR100000929227   | TRANSFER           | DEBIT        |       3262500 | SUCCESSFUL |
+| 2026-10-31 13:53:47+00:00 | OWR100000750804   | MERCHANT_PAYMENT   | DEBIT        |        120000 | SUCCESSFUL |
+| 2026-10-31 13:40:04+00:00 | OWR100000962490   | MERCHANT_PAYMENT   | DEBIT        |        575000 | SUCCESSFUL |
+| 2026-10-31 09:52:09+00:00 | OWR100000152906   | MERCHANT_PAYMENT   | DEBIT        |         20000 | SUCCESSFUL |
+| 2026-10-31 05:49:38+00:00 | OWR100000365536   | TRANSFER           | DEBIT        |         71000 | SUCCESSFUL |
+| 2026-10-31 03:46:07+00:00 | OWR100000806026   | TRANSFER           | DEBIT        |       3192500 | SUCCESSFUL |
+| 2026-10-31 03:11:32+00:00 | OWR100000448076   | TRANSFER           | DEBIT        |         41000 | SUCCESSFUL |
+| 2026-10-31 02:22:07+00:00 | OWR100000717849   | BILL_PAYMENT       | DEBIT        |       2320000 | SUCCESSFUL |
+| 2026-10-31 02:21:59+00:00 | OWR100000592926   | BILL_PAYMENT       | DEBIT        |         50250 | SUCCESSFUL |
+| 2026-10-31 01:28:09+00:00 | OWR100000844001   | TRANSFER           | DEBIT        |       2622500 | SUCCESSFUL |
+| 2026-10-31 01:02:55+00:00 | OWR100000586688   | BILL_PAYMENT       | DEBIT        |       2740000 | SUCCESSFUL |
+| 2026-10-30 21:26:17+00:00 | OWR100000526251   | TRANSFER           | DEBIT        |        582500 | SUCCESSFUL |
+| 2026-10-30 21:18:44+00:00 | OWR100000413501   | MERCHANT_PAYMENT   | DEBIT        |       1600000 | SUCCESSFUL |
+| 2026-10-30 15:58:22+00:00 | OWR100000832260   | TRANSFER           | DEBIT        |        872500 | SUCCESSFUL |
+| 2026-10-30 15:10:12+00:00 | OWR100000497503   | MERCHANT_PAYMENT   | DEBIT        |         10000 | SUCCESSFUL |
+| 2026-10-30 14:45:29+00:00 | OWR100000884637   | MERCHANT_PAYMENT   | DEBIT        |        950000 | SUCCESSFUL |
+| 2026-10-30 14:06:05+00:00 | OWR100000944545   | TRANSFER           | DEBIT        |         51000 | SUCCESSFUL |
+| 2026-10-30 13:39:03+00:00 | OWR100000460310   | BILL_PAYMENT       | DEBIT        |       2110000 | SUCCESSFUL |
++---------------------------+-------------------+--------------------+--------------+---------------+------------+

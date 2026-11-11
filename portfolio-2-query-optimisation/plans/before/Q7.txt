@@ -1,0 +1,45 @@
+Q7: Settlement: October 2026 takings per merchant and biller (FR-10)
+phase: before
+
+SELECT m.merchant_code, m.business_name, m.category, count(*) AS payments, sum(t.amount_kobo) AS gross_kobo
+FROM transaction t
+JOIN wallet w   ON w.wallet_id = t.destination_wallet_id
+JOIN merchant m ON m.merchant_id = w.merchant_id
+WHERE t.transaction_type IN ('MERCHANT_PAYMENT', 'BILL_PAYMENT')
+  AND t.status = 'SUCCESSFUL'
+  AND t.created_at >= '2026-10-01 00:00:00+00' AND t.created_at < '2026-11-01 00:00:00+00'
+GROUP BY m.merchant_id, m.merchant_code, m.business_name, m.category
+ORDER BY gross_kobo DESC, m.merchant_code;
+
+Sort  (cost=5696.49..5701.50 rows=2004 width=86) (actual time=1771.521..1777.408 rows=2000 loops=1)
+  Sort Key: (sum(t.amount_kobo)) DESC, m.merchant_code
+  Sort Method: quicksort  Memory: 225kB
+  Buffers: shared hit=1127645 read=272289
+  ->  Finalize GroupAggregate  (cost=1001.25..5586.58 rows=2004 width=86) (actual time=105.311..1774.951 rows=2000 loops=1)
+        Group Key: m.merchant_id
+        Buffers: shared hit=1127645 read=272289
+        ->  Gather Merge  (cost=1001.25..5541.49 rows=2004 width=86) (actual time=94.115..1771.106 rows=2000 loops=1)
+              Workers Planned: 1
+              Workers Launched: 1
+              Buffers: shared hit=1127645 read=272289
+              ->  Partial GroupAggregate  (cost=1.24..4316.03 rows=2004 width=86) (actual time=34.056..1669.593 rows=1000 loops=2)
+                    Group Key: m.merchant_id
+                    Buffers: shared hit=1127645 read=272289
+                    ->  Merge Join  (cost=1.24..4028.54 rows=34993 width=54) (actual time=22.613..1659.154 rows=32641 loops=2)
+                          Merge Cond: (w.merchant_id = m.merchant_id)
+                          Buffers: shared hit=1127645 read=272289
+                          ->  Nested Loop  (cost=0.72..196820.29 rows=34993 width=16) (actual time=22.516..1648.002 rows=32641 loops=2)
+                                Buffers: shared hit=1127629 read=272242
+                                ->  Parallel Index Scan using uq_wallet_merchant on wallet w  (cost=0.29..13625.42 rows=108821 width=16) (actual time=0.036..23.982 rows=51006 loops=2)
+                                      Buffers: shared hit=606 read=2938
+                                ->  Index Scan using ix_transaction_destination_wallet on transaction t  (cost=0.43..1.67 rows=1 width=16) (actual time=0.029..0.031 rows=1 loops=102012)
+                                      Index Cond: (destination_wallet_id = w.wallet_id)
+                                      Filter: ((transaction_type = ANY ('{MERCHANT_PAYMENT,BILL_PAYMENT}'::text[])) AND (created_at >= '2026-10-01 00:00:00+00'::timestamp with time zone) AND (created_at < '2026-11-01 00:00:00+00'::timestamp with time zone) AND (status = 'SUCCESSFUL'::text))
+                                      Rows Removed by Filter: 10
+                                      Buffers: shared hit=1127023 read=269304
+                          ->  Index Scan using pk_merchant on merchant m  (cost=0.28..91.34 rows=2004 width=46) (actual time=0.052..1.248 rows=1814 loops=2)
+                                Buffers: shared hit=16 read=47
+Planning:
+  Buffers: shared hit=15 read=23
+Planning Time: 1.185 ms
+Execution Time: 1777.753 ms

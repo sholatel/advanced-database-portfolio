@@ -1,0 +1,7 @@
+Q5: Finance: reconcile every wallet's stored balance against the ledger (FR-08)
+0 rows (first 25 shown)
+
++-----------------+----------------+-----------------------+-------------------+
+| wallet_number   | balance_kobo   | ledger_balance_kobo   | difference_kobo   |
+|-----------------+----------------+-----------------------+-------------------|
++-----------------+----------------+-----------------------+-------------------+

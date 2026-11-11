@@ -1,0 +1,32 @@
+Q1: Support: find a customer and their wallets by phone number (FR-01)
+phase: before
+
+SELECT c.customer_id, c.full_name, c.status, w.wallet_number, w.balance_kobo, w.status AS wallet_status
+FROM customer_phone p
+JOIN customer c ON c.customer_id = p.customer_id
+JOIN wallet w   ON w.customer_id = c.customer_id
+WHERE p.phone_number = '+2349000013424'
+ORDER BY w.wallet_number;
+
+Sort  (cost=17.26..17.26 rows=2 width=54) (actual time=0.039..0.040 rows=1 loops=1)
+  Sort Key: w.wallet_number
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=11
+  ->  Nested Loop  (cost=1.13..17.25 rows=2 width=54) (actual time=0.033..0.035 rows=1 loops=1)
+        Join Filter: (p.customer_id = c.customer_id)
+        Buffers: shared hit=11
+        ->  Nested Loop  (cost=0.84..16.88 rows=1 width=42) (actual time=0.026..0.028 rows=1 loops=1)
+              Buffers: shared hit=8
+              ->  Index Scan using pk_customer_phone on customer_phone p  (cost=0.42..8.44 rows=1 width=8) (actual time=0.019..0.019 rows=1 loops=1)
+                    Index Cond: (phone_number = '+2349000013424'::text)
+                    Buffers: shared hit=4
+              ->  Index Scan using ix_wallet_customer on wallet w  (cost=0.42..8.44 rows=1 width=34) (actual time=0.005..0.006 rows=1 loops=1)
+                    Index Cond: (customer_id = p.customer_id)
+                    Buffers: shared hit=4
+        ->  Index Scan using pk_customer on customer c  (cost=0.29..0.35 rows=1 width=28) (actual time=0.004..0.004 rows=1 loops=1)
+              Index Cond: (customer_id = w.customer_id)
+              Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=48
+Planning Time: 0.519 ms
+Execution Time: 0.066 ms

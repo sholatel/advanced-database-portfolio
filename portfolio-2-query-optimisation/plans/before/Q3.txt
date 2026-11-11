@@ -1,0 +1,26 @@
+Q3: Support: a transaction and its status history by reference
+phase: before
+
+SELECT t.transaction_ref, t.transaction_type, t.amount_kobo, t.fee_kobo, t.status,
+       h.seq_no, h.status AS history_status, h.changed_at, h.reason
+FROM transaction t
+JOIN transaction_status_history h ON h.transaction_id = t.transaction_id
+WHERE t.transaction_ref = 'OWR100000470468'
+ORDER BY h.seq_no;
+
+Sort  (cost=18.69..18.70 rows=2 width=91) (actual time=0.037..0.037 rows=3 loops=1)
+  Sort Key: h.seq_no
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=8
+  ->  Nested Loop  (cost=0.86..18.68 rows=2 width=91) (actual time=0.028..0.031 rows=3 loops=1)
+        Buffers: shared hit=8
+        ->  Index Scan using uq_transaction_ref on transaction t  (cost=0.43..8.45 rows=1 width=61) (actual time=0.018..0.019 rows=1 loops=1)
+              Index Cond: (transaction_ref = 'OWR100000470468'::text)
+              Buffers: shared hit=4
+        ->  Index Scan using pk_transaction_status_history on transaction_status_history h  (cost=0.43..10.21 rows=2 width=46) (actual time=0.006..0.007 rows=3 loops=1)
+              Index Cond: (transaction_id = t.transaction_id)
+              Buffers: shared hit=4
+Planning:
+  Buffers: shared hit=76
+Planning Time: 0.322 ms
+Execution Time: 0.056 ms

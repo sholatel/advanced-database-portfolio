@@ -1,0 +1,8 @@
+Q4: Posting: amount already sent today by the busiest wallet, for the daily KYC limit (BR-04)
+1 rows (first 25 shown)
+
++-------------------+
+|   sent_today_kobo |
+|-------------------|
+|       3.18699e+07 |
++-------------------+

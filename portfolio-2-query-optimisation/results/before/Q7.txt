@@ -1,0 +1,32 @@
+Q7: Settlement: October 2026 takings per merchant and biller (FR-10)
+2000 rows (first 25 shown)
+
++-----------------+-------------------------+-------------+------------+--------------+
+| merchant_code   | business_name           | category    |   payments |   gross_kobo |
+|-----------------+-------------------------+-------------+------------+--------------|
+| MRC10001        | Education Merchant 1    | EDUCATION   |       3415 |  2.19745e+09 |
+| MRC10002        | Food Merchant 2         | FOOD        |        911 |  6.04275e+08 |
+| MRC10003        | Retail Merchant 3       | RETAIL      |        605 |  4.01855e+08 |
+| MRC10004        | Transport Merchant 4    | TRANSPORT   |        523 |  3.51005e+08 |
+| MRC10005        | Food Merchant 5         | FOOD        |        419 |  2.8406e+08  |
+| MRC10006        | Education Merchant 6    | EDUCATION   |        372 |  2.4503e+08  |
+| MRC11809        | Airtime Biller 1809     | AIRTIME     |        152 |  2.3809e+08  |
+| MRC11816        | Airtime Biller 1816     | AIRTIME     |        138 |  2.2975e+08  |
+| MRC11898        | Airtime Biller 1898     | AIRTIME     |        139 |  2.2715e+08  |
+| MRC11890        | Cable Tv Biller 1890    | CABLE_TV    |        148 |  2.2331e+08  |
+| MRC11845        | Electricity Biller 1845 | ELECTRICITY |        150 |  2.2266e+08  |
+| MRC11871        | Airtime Biller 1871     | AIRTIME     |        139 |  2.195e+08   |
+| MRC11832        | Airtime Biller 1832     | AIRTIME     |        150 |  2.1919e+08  |
+| MRC11834        | Electricity Biller 1834 | ELECTRICITY |        140 |  2.1836e+08  |
+| MRC11805        | Airtime Biller 1805     | AIRTIME     |        143 |  2.1804e+08  |
+| MRC11849        | Airtime Biller 1849     | AIRTIME     |        132 |  2.1673e+08  |
+| MRC11967        | Electricity Biller 1967 | ELECTRICITY |        137 |  2.1579e+08  |
+| MRC11954        | Airtime Biller 1954     | AIRTIME     |        134 |  2.1525e+08  |
+| MRC11997        | Airtime Biller 1997     | AIRTIME     |        139 |  2.1392e+08  |
+| MRC11893        | Airtime Biller 1893     | AIRTIME     |        128 |  2.1354e+08  |
+| MRC11994        | Cable Tv Biller 1994    | CABLE_TV    |        134 |  2.1168e+08  |
+| MRC11999        | Cable Tv Biller 1999    | CABLE_TV    |        137 |  2.1118e+08  |
+| MRC11864        | Airtime Biller 1864     | AIRTIME     |        137 |  2.1065e+08  |
+| MRC11943        | Cable Tv Biller 1943    | CABLE_TV    |        139 |  2.1065e+08  |
+| MRC11935        | Cable Tv Biller 1935    | CABLE_TV    |        130 |  2.1037e+08  |
++-----------------+-------------------------+-------------+------------+--------------+

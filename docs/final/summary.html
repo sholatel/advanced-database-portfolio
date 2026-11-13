@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OwoRail: MIT 8103 Advanced Database Systems Portfolio</title>
+<style>
+  @page { size: A4; margin: 14mm 15mm 14mm 15mm; }
+  * { box-sizing: border-box; }
+  body { font-family: Calibri, "Segoe UI", Arial, sans-serif; font-size: 10.5pt; line-height: 1.38; color: #111; margin: 0; }
+  h1 { font-size: 16pt; margin: 0 0 1mm; }
+  h2 { font-size: 12pt; margin: 3.2mm 0 1.2mm; padding-bottom: 0.6mm; border-bottom: 0.6pt solid #888; break-after: avoid; }
+  p { margin: 0 0 1.6mm; }
+  ul { margin: 0 0 1.6mm; padding-left: 4.5mm; }
+  li { margin: 0 0 0.6mm; }
+  .meta { color: #333; margin-bottom: 2mm; }
+  .meta b { color: #111; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 1.8mm; font-size: 9.6pt; }
+  th, td { border: 0.5pt solid #999; padding: 1mm 1.4mm; vertical-align: top; text-align: left; }
+  th { background: #eee; }
+  td:first-child { white-space: nowrap; font-weight: 600; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 8.6pt; }
+  .figs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5mm; margin: 1mm 0 2mm; }
+  figure { margin: 0; break-inside: avoid; }
+  figure img { width: 100%; height: 44mm; object-fit: contain; border: 0.5pt solid #bbb; background: #fff; }
+  .placeholder { height: 44mm; border: 0.8pt dashed #888; display: flex; align-items: center; justify-content: center;
+                 text-align: center; color: #666; font-size: 8pt; padding: 2mm; background: #fafafa; }
+  figcaption { font-size: 8.8pt; color: #333; margin-top: 0.8mm; }
+  .refs p { font-size: 9pt; margin: 0 0 0.8mm; padding-left: 4mm; text-indent: -4mm; }
+  .small { font-size: 9.4pt; }
+</style>
+</head>
+<body>
+
+<h1>OwoRail: an advanced database systems portfolio</h1>
+<div class="meta">
+  <b>Yusuf O. Sholadoye</b> · Student ID: ____________ · MIT 8103 Advanced Database Systems · Continuous assessment, September 2026 cohort<br>
+  <b>GitHub repository (private, shared with the assessor):</b> https://github.com/sholatel/advanced-database-portfolio
+</div>
+
+<h2>1. Selected organisation: OwoRail</h2>
+<p>OwoRail is a simulated Lagos-based digital-wallet operator. Customers hold naira wallets, send money to each other, pay merchants and billers by app, USSD or web, and are charged small fees. It is an integrity-critical transaction-processing system: money must never be created, lost or posted twice.</p>
+<ul>
+  <li><b>Users:</b> customers (through the payments application), merchants, support agents, compliance (KYC) analysts, fraud and finance analysts, internal auditors, and the DBA.</li>
+  <li><b>Data:</b> customers and their phones, KYC profiles in three tiers, wallets (customer, merchant and system), merchants and billers, fee rules, transactions, a double-entry ledger, status history, reversals and an audit log. Money is stored as integer kobo, times in UTC, and all data is synthetic.</li>
+  <li><b>Key operations:</b> onboard a customer; transfer; pay a merchant or bill; charge fees; reverse a transaction; wallet statement; reconcile balances against the ledger; velocity (fraud) check; monthly merchant settlement.</li>
+</ul>
+
+<h2>2. The five portfolio activities</h2>
+<table>
+  <tr><th>Portfolio</th><th>What I built</th><th>Main results (evidence in each folder's <code>evidence/</code>)</th></tr>
+  <tr><td>1 Design and modelling</td>
+      <td>Requirements and 18 business rules; a Chen ER diagram; 13 relations normalised to BCNF; a PostgreSQL 16 implementation with 94 named constraints, a deferred balanced-ledger trigger, append-only tables, posting and reversal functions, and least-privilege roles.</td>
+      <td>120 constraint, 40 procedure and 41 role tests passed, plus 13 consistency checks. A catalogue check confirms the database matches the design document. Rebuilding the normalisation sample by joining the tables gives back the original report, so the decomposition is lossless.</td></tr>
+  <tr><td>2 Query optimisation</td>
+      <td>1.1 million synthetic transactions; nine queries from real operations measured with <code>EXPLAIN (ANALYZE, BUFFERS)</code> before and after composite and covering indexes, a better statistics target, a materialised view and rewrites.</td>
+      <td>Settlement 1,778 → 3.6 ms; daily-limit check 3.2 → 0.05 ms; dormant-wallet query over 30 s → 133 ms (NOT IN → NOT EXISTS); reconciliation 2× faster after fixing the distinct-count estimate. The costs are reported too: index space 252 → 560 MB, posting 16 % slower, and one index the planner never used.</td></tr>
+  <tr><td>3 Transactions and concurrency</td>
+      <td>Python scripts that drive several real sessions in a fixed order: commit, rollback, savepoints, crash durability, every isolation level, lost update, row locks, deadlock, and the posting function under load.</td>
+      <td>49 checks passed. A transfer survived a server kill (WAL recovery). Write skew was stopped only by SERIALIZABLE. Deadlocks: 100 of 200 with unordered locking, 0 with ordered. No overspending, no double posting of duplicate requests, and a FEES-wallet hot spot measured.</td></tr>
+  <tr><td>4 NoSQL (MongoDB)</td>
+      <td>A document model loaded from the same PostgreSQL data (ledger lines and history embedded); <code>$jsonSchema</code> validators; indexes measured with <code>explain()</code>; multi-document transactions; key-value, wide-column and graph models also discussed.</td>
+      <td>58 checks passed, and every query returns the same rows as PostgreSQL. The statement query reads exactly 20 documents with one index, but full reconciliation takes 31 s against 0.8 s in PostgreSQL. The conclusion is polyglot persistence: PostgreSQL for money, MongoDB as the read model.</td></tr>
+  <tr><td>5 Distributed and cloud</td>
+      <td>A three-node replica set and a sharded cluster (config server, two shards, router); a distribution and deployment design for OwoRail.</td>
+      <td>25 checks passed. Failover paused writes for 11.4 s and lost no acknowledged majority write. A <code>w:1</code> write was rolled back after a failover. A hashed wallet shard key split the data 50/50, while a time key sent all new writes to one shard. The ledger favours consistency under partition (CAP), and the data is hosted in Nigeria (NDPA 2023).</td></tr>
+</table>
+
+<h2>3. Evidence</h2>
+<div class="figs">
+  <!--fig:portfolio-1-database-design/erd/erd-chen.png|Figure 1. Chen ER diagram (Portfolio 1)-->
+  <!--fig:portfolio-2-query-optimisation/evidence/screenshots/m6_comparison.png|Figure 2. Before/after query timings and buffers (Portfolio 2)-->
+  <!--fig:portfolio-3-transactions-concurrency/evidence/screenshots/m8_deadlock.png|Figure 3. Deadlock detected between two sessions (Portfolio 3)-->
+  <!--fig:portfolio-4-nosql/evidence/screenshots/m9_explain_statement.png|Figure 4. explain(): statement served by one index (Portfolio 4)-->
+  <!--fig:portfolio-5-distributed-cloud/evidence/screenshots/m10_failover.png|Figure 5. Replica set after the primary was killed (Portfolio 5)-->
+  <!--fig:portfolio-3-transactions-concurrency/evidence/screenshots/m8_serializable.png|Figure 6. SERIALIZABLE refusing write skew (Portfolio 3)-->
+</div>
+<p class="small">Every result above comes from a captured output file: the exact command, time, exit code and unedited output, in the <code>evidence/</code> folder of each portfolio. Each portfolio's README explains how it was implemented and tested. <code>python tools/run_all.py</code> rebuilds and reruns everything. As a final check I ran all five portfolios from a fresh clone with new database volumes (<code>docs/fresh-run-check.md</code>).</p>
+
+<h2>4. Individual technical reflection</h2>
+<p><b>Design choices.</b> Integer kobo and a double-entry ledger made "are the books right?" a query, and that query confirmed correct balances after a bulk load of 1.1 million transactions, hundreds of concurrent postings and a server crash. I enforced the rules in the database itself (named constraints, a deferred trigger, posting only through functions), so a test can see which rule refused a bad row. I kept PostgreSQL as the system of record because the measurements, not preference, showed MongoDB's weaknesses for money: slow whole-ledger aggregation, no foreign keys, and conflicts instead of waiting.</p>
+<p><b>Challenges.</b> Removing the time from ledger lines was right for 2NF, but it made the statement query need a rewrite in Portfolio 2. A design decision came back in three later portfolios. The planner was only as good as its statistics (32,000 estimated wallets against 102,000 real ones caused a spill to disk), and a partial index that was faster when forced was never chosen. Laptop timings varied 2–3×, so I compared buffers and documents examined. Some results looked right and weren't: a failover "with no outage", and a "partition" made with <code>docker pause</code> that delivered the writes anyway.</p>
+<p><b>Lessons.</b> Measure before deciding, and measure the right thing. Every index, copy and replica has a cost. Consistency is a setting chosen per operation: with <code>w:1</code> an acknowledged payment can disappear. Tests should check outcomes (which constraint, identical rows), not only that nothing failed. Next, I would simulate KYC daily limits in the data, test on separate machines, split the FEES wallet and feed MongoDB by change data capture. The full reflection is in <code>docs/reflection.md</code>.</p>
+
+<h2>5. AI Use Declaration</h2>
+<p><b>Tool:</b> Claude Code (Anthropic), model Claude Opus 5.5. <b>Use:</b> I chose the case study, data conventions, stack and plan, specified each piece of work and decided what to accept. The assistant drafted the plans, scripts (SQL, Python, Docker Compose) and documentation to that specification. Its design recommendations that I accepted are listed separately in the AI log. <b>Verification:</b> every script was run and its unedited output captured; automated checks decide whether each part works (for example the 201 tests of Portfolio 1 and the 58 checks of Portfolio 4); MongoDB results were compared with PostgreSQL; a fresh-clone run passed every check again. Errors found in the output were corrected and logged, and figures were checked against the evidence. I am responsible for the work and can explain all of it. Full declaration: <code>docs/ai-use-declaration.md</code>; milestone log: <code>docs/ai-assistance-log.md</code>.</p>
+
+<h2>References</h2>
+<div class="refs">
+  <p>Abadi, D. (2012). Consistency tradeoffs in modern distributed database system design: CAP is only part of the story. <i>Computer, 45</i>(2), 37–42.</p>
+  <p>Elmasri, R., &amp; Navathe, S. B. (2016). <i>Fundamentals of database systems</i> (7th ed.). Pearson.</p>
+  <p>Federal Republic of Nigeria. (2023). <i>Nigeria Data Protection Act, 2023</i>.</p>
+  <p>Miva Open University. (2025). <i>MIT 8103 Advanced database systems</i> [Course material]. School of Postgraduate Studies.</p>
+  <p>MongoDB, Inc. (n.d.). <i>MongoDB manual (version 7.0)</i>. https://www.mongodb.com/docs/v7.0/</p>
+  <p>Özsu, M. T., &amp; Valduriez, P. (2020). <i>Principles of distributed database systems</i> (4th ed.). Springer.</p>
+  <p>PostgreSQL Global Development Group. (n.d.). <i>PostgreSQL 16 documentation</i>. https://www.postgresql.org/docs/16/</p>
+  <p>Sadalage, P. J., &amp; Fowler, M. (2012). <i>NoSQL distilled</i>. Addison-Wesley.</p>
+  <p>Silberschatz, A., Korth, H. F., &amp; Sudarshan, S. (2020). <i>Database system concepts</i> (7th ed.). McGraw-Hill Education.</p>
+  <p class="small">Software: PostgreSQL 16.15, MongoDB 7.0.45, Docker, Python 3.13 with psycopg, PyMongo and tabulate, Graphviz. The full list is in <code>docs/references.md</code>.</p>
+</div>
+
+</body>
+</html>

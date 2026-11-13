@@ -1,5 +1,3 @@
-# A small sharded cluster: config server, two shards and a mongos router, all one-member
-# replica sets in the "net" service's network namespace (addresses 127.0.0.1:<port>).
 name: oworail-p5-sh
 
 x-node: &node

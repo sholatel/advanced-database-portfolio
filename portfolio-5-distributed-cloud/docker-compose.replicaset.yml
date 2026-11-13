@@ -1,5 +1,3 @@
-# All nodes share the "net" service's network namespace, so members and the host use the
-# same addresses (127.0.0.1:<port>). "net" also writes the shared keyfile.
 name: oworail-p5-rs
 
 x-node: &node

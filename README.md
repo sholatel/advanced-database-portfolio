@@ -75,30 +75,36 @@ advanced-database-portfolio/
 ├── .env.example                           configuration template (copy to .env; .env is never committed)
 ├── requirements.txt                       pinned Python dependencies
 ├── tools/
-│   └── capture_evidence.py                runs a command and saves timestamped evidence output
+│   ├── capture_evidence.py                runs a command and saves timestamped evidence output
+│   └── run_all.py                         runs all five portfolios end to end
 ├── portfolio-1-database-design/           P1 Database Design and Modelling
 ├── portfolio-2-query-optimisation/        P2 Query Processing and Optimisation
 ├── portfolio-3-transactions-concurrency/  P3 Transactions and Concurrency
 ├── portfolio-4-nosql/                     P4 NoSQL and Advanced Data Models
 ├── portfolio-5-distributed-cloud/         P5 Distributed and Cloud Database Exercise
 └── docs/
-    ├── ai-assistance-log.md               record of AI assistance per milestone (feeds the AI Use Declaration)
+    ├── final/                             the 2-page LMS summary (HTML source, build script, PDF)
+    ├── reflection.md                      individual technical reflection
+    ├── ai-use-declaration.md              AI Use Declaration
+    ├── ai-assistance-log.md               record of AI assistance, step by step
+    ├── fresh-run-check.md                 everything rerun from a clean clone
     └── references.md                      references (APA 7)
 ```
 
 Each portfolio folder has its own `README.md` explaining what was implemented, how to run it and how it was tested, plus an `evidence/` folder with captured outputs.
 
-## 3. Progress
+## 3. Status
 
-| Milestone | Scope | Status |
+All five portfolio activities and the final documentation are complete. The work was committed step by step: environment and case study first, then each portfolio in turn (see the commit history).
+
+| Part | Scope | Status |
 |---|---|---|
-| M1 | Repository scaffold, case study, database containers | Done |
-| M2–M4 | P1: requirements, ER diagram (Chen), relational schema, normalisation, implementation | Done |
-| M5–M6 | P2: query workload, execution plans, indexing and optimisation | Done |
-| M7–M8 | P3: transactions (commit, rollback, savepoint), isolation and concurrency control | Done |
-| M9 | P4: MongoDB document model on the same case study | Done |
-| M10 | P5: distributed design and a three-node MongoDB replica set | Done |
-| M11 | Final documentation, fresh-run verification, LMS summary | Planned |
+| Portfolio 1 | requirements, ER diagram (Chen), relational schema, normalisation, PostgreSQL implementation and tests | complete |
+| Portfolio 2 | query workload on 1.1 million transactions, execution plans, indexing and optimisation | complete |
+| Portfolio 3 | transactions (commit, rollback, savepoint, durability), isolation and concurrency control | complete |
+| Portfolio 4 | MongoDB document model on the same data, validation, indexing, transactions, suitability | complete |
+| Portfolio 5 | replica set, failover, consistency, sharding, distributed and cloud design | complete |
+| Final documentation | LMS summary, reflection, AI Use Declaration, references, fresh-run check | complete |
 
 ## 4. Technology stack
 
@@ -106,7 +112,7 @@ Each portfolio folder has its own `README.md` explaining what was implemented, h
 |---|---|---|
 | Relational database (P1–P3) | PostgreSQL, Docker image `postgres:16` | 16.15 (exact version and image digest recorded in [evidence](portfolio-1-database-design/evidence/m1_postgres_environment.txt)) |
 | Document database (P4) | MongoDB, Docker image `mongo:7.0`, run as a single-node replica set (`rs0`) so multi-document transactions work | 7.0.45 (exact version and image digest recorded in [evidence](portfolio-4-nosql/evidence/m1_mongo_environment.txt)) |
-| Distributed database (P5) | MongoDB three-node replica set (Docker Compose) | 7.0 |
+| Distributed database (P5) | MongoDB three-node replica set and a sharded cluster (config server, two shards, `mongos`), each its own Compose file | 7.0 |
 | Containers | Docker Engine + Docker Compose v2 | Docker 28.4, Compose 2.39 |
 | Scripting | Python with `psycopg` 3, `pymongo`, `tabulate` | Python 3.11+ (developed on 3.13.5); see [requirements.txt](requirements.txt) |
 | ER diagram | Graphviz (DOT source rendered to SVG/PNG) | 16.1 |
@@ -132,10 +138,15 @@ python -m venv .venv
 .venv/Scripts/python -m pip install -r requirements.txt     # Windows
 # .venv/bin/python -m pip install -r requirements.txt       # macOS / Linux
 
-# 5. Stop
+# 5. Run all five portfolios end to end (about 65 minutes; evidence files are rewritten)
+.venv/Scripts/python tools/run_all.py          # or only some: tools/run_all.py 1 3
+
+# 6. Stop
 docker compose down          # stop containers, keep data
 docker compose down -v       # stop containers and DELETE the data volumes (clean slate)
 ```
+
+Each portfolio can also be run on its own; its README gives the command. Portfolio 5 starts its own clusters and stops the main MongoDB container while it runs (`docker compose start mongo` brings it back).
 
 | Service | Host address | Notes |
 |---|---|---|
@@ -148,8 +159,6 @@ The repository is mounted read-only inside both containers at `/workspace`, so S
 
 ## 6. Evidence index
 
-Completed portfolio by portfolio; finalised in M11.
-
 | CA requirement | Evidence |
 |---|---|
 | Case study stated | [Section 1 above](#1-selected-case-study-oworail) |
@@ -160,10 +169,15 @@ Completed portfolio by portfolio; finalised in M11.
 | Portfolio 3: transactions and concurrency | [portfolio-3-transactions-concurrency/README.md](portfolio-3-transactions-concurrency/README.md#required-evidence) (commit, rollback, isolation, locking timelines) |
 | Portfolio 4: NoSQL (MongoDB) | [portfolio-4-nosql/README.md](portfolio-4-nosql/README.md#required-evidence) (document model, validation, explain before/after, transactions, suitability) |
 | Portfolio 5: distributed and cloud | [portfolio-5-distributed-cloud/README.md](portfolio-5-distributed-cloud/README.md#required-evidence) (replica set, failover, rollback, consistency, sharding, deployment design) |
+| Final documentation (LMS summary) | [docs/final/OwoRail-portfolio-summary.pdf](docs/final/OwoRail-portfolio-summary.pdf) |
+| Individual technical reflection | [docs/reflection.md](docs/reflection.md) |
+| AI Use Declaration | [docs/ai-use-declaration.md](docs/ai-use-declaration.md) |
+| Reproducibility | [docs/fresh-run-check.md](docs/fresh-run-check.md): all five portfolios rerun from a clean clone |
+| References | [docs/references.md](docs/references.md) |
 
 ## 7. Academic integrity and AI use
 
-I designed this portfolio. I chose the OwoRail case study and defined the architecture, the technology stack, the data-design conventions (integer kobo, double-entry ledger, idempotency keys, role-based access) and the milestone plan, and I made the design decisions at each stage. I used **Claude Code** (Anthropic) as a coding and writing assistant: to generate scripts and draft documentation to my specifications, and to save time on repetitive work. I reviewed, ran and tested all generated output, modified it where needed, and verified every result before committing it. Details per milestone are in [docs/ai-assistance-log.md](docs/ai-assistance-log.md). The full AI Use Declaration is added in the final milestone.
+I designed this portfolio. I chose the OwoRail case study and defined the architecture, the technology stack, the data-design conventions (integer kobo, double-entry ledger, idempotency keys, role-based access) and the milestone plan, and I made the design decisions at each stage. I used **Claude Code** (Anthropic) as a coding and writing assistant: to generate scripts and draft documentation to my specifications, and to save time on repetitive work. I reviewed, ran and tested all generated output, modified it where needed, and verified every result before committing it. The full [AI Use Declaration](docs/ai-use-declaration.md) states the tool, what it was used for and how its output was checked; [docs/ai-assistance-log.md](docs/ai-assistance-log.md) records it step by step.
 
 ## 8. References
 

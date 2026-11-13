@@ -102,4 +102,4 @@ Indexes aren't free, and two measurements show what they cost:
 
 PostgreSQL Global Development Group. (n.d.). *PostgreSQL 16 documentation: Chapter 14, Performance tips; Chapter 11, Indexes; Section 76.1, Row estimation examples*. Retrieved November 10, 2026, from https://www.postgresql.org/docs/16/
 
-Silberschatz, A., Korth, H. F., & Sudarshan, S. (2020). *Database system concepts* (7th ed.). McGraw-Hill.
+Silberschatz, A., Korth, H. F., & Sudarshan, S. (2020). *Database system concepts* (7th ed.). McGraw-Hill Education.

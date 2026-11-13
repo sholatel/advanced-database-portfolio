@@ -188,3 +188,23 @@ This log records, milestone by milestone, how I (Yusuf O. Sholadoye) used an AI 
 - The write-concern latencies vary between runs on one machine; the design presents them as an ordering, not as network figures.
 
 ---
+
+## M11: Final documentation (11 Nov 2026)
+
+**My decisions:** the LMS submission as a short PDF summary that points to the private GitHub repository; the full reflection and AI Use Declaration kept in the repository, with condensed versions in the summary; one last run of everything from a clean clone before submitting; all screenshots taken by me at the end.
+
+**Design decisions (approved at review):**
+- The summary is written as HTML and printed to an A4 PDF with headless Chrome, because no document tools were installed. Screenshots are inserted from fixed paths, with a visible placeholder until each one exists.
+- `tools/run_all.py` runs the five pipelines in order.
+- The fresh run uses its own Compose project name, so it starts on new, empty volumes and leaves my working data alone.
+- Where the fresh run disagreed with a reported figure, the analysis was changed to rest on what held in both runs.
+
+**AI assistance used:** drafted the LMS summary, a first version of the reflection for me to revise, the AI Use Declaration and the fresh-run record; completed the references; wrote the summary build script and `run_all.py`; ran the fresh-run check.
+
+**How it was verified:**
+- Fresh clone, new virtual environment, new volumes: all five portfolios exited 0 and every check passed (65 minutes in total). Figures that depend only on the data matched the committed evidence: final buffer counts, documents examined, shard splits.
+- The fresh run showed that the Portfolio 3 hot-row scaling ratio is not stable (1.9× against 4.8× in the evidence, 3.3× against 2.1× in the rerun). The Portfolio 3 analysis and the reflection now rely on the lock waits and the throughput gap at eight sessions, which held in both runs.
+- Every figure in the summary was checked against the evidence files. A check total I had written that does not appear in the evidence was replaced with counts that do.
+- The PDF is 2 A4 pages. All relative links in the Markdown files resolve. One publisher name that differed between documents was made consistent.
+
+---

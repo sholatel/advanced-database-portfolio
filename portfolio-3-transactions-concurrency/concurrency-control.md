@@ -45,11 +45,13 @@ Write skew is the subtle case. The two transactions update *different* rows, so 
 | L5 two transfers that together overspend | a wallet held 50,000; two transfers of 40,000 (+1,000 fee) started at once. The second waited on the first one's lock on the sender's wallet, re-read the balance after the first committed (9,000) and was recorded as FAILED, insufficient funds. The wallet was never overdrawn. |
 | L6 opposite transfers | 4 sessions sent 200 transfers between the same two wallets in both directions: 0 deadlocks, 0 errors, all 200 successful, and the pair lost exactly the 200 fees |
 | L7 duplicate requests at the same moment | 20 times, two sessions sent the same request (same idempotency key) simultaneously: in every pair both got the same transaction id, each key was stored once, and the sender paid for 20 transfers, not 40 |
-| L8 a hot row | 400 postings with 1 and with 8 sessions. Merchant payments, which share no row, went from 131 to 624 per second (4.8×). Transfers all credit the single FEES wallet, so they queue on its row lock: 535 lock waits were sampled, and throughput rose only from 123 to 234 per second (1.9×). |
+| L8 a hot row | 400 postings with 1 and with 8 sessions. Transfers all credit the single FEES wallet, so with 8 sessions they queue on its row lock: 535 lock waits were sampled, against none for merchant payments, which share no row. With 8 sessions, transfers managed 234 postings per second and merchant payments 624. |
 
 L7 works because the uniqueness of `idempotency_key` is enforced by the database, not by a lookup in the application. When both requests miss the first lookup, `INSERT ... ON CONFLICT ON CONSTRAINT uq_transaction_idempotency_key DO NOTHING` makes the second one wait for the first to commit. It then inserts nothing, and the function returns the first one's id.
 
 L8 shows a design limit worth stating plainly. Every fee is added to one row, so fee-paying transfers serialise on it, however many sessions there are. The lock is taken last and held only until COMMIT, which keeps the queue short. But it would become the bottleneck long before the wallets themselves. Two common fixes are spreading fees over several FEES sub-wallets chosen by hash, or not updating a stored FEES balance at all and deriving it from the ledger (it is a system wallet, so no limit check needs it). In a sharded design (Portfolio 5), the same row would also be a hot spot across nodes.
+
+The scaling ratio from one session to eight is less reliable than those two findings. In this run, merchant payments rose 4.8× and transfers 1.9×. When I reran everything from a fresh clone, the single-session transfer rate was 45 per second instead of 123, and the ratios came out 2.1× and 3.3×. The lock waits (606) and the gap at eight sessions (148 against 315 per second) held in both runs ([fresh-run-check.md](../docs/fresh-run-check.md)).
 
 ## What I'd tell a developer joining the team
 
@@ -63,4 +65,4 @@ L8 shows a design limit worth stating plainly. Every fee is added to one row, so
 
 PostgreSQL Global Development Group. (n.d.). *PostgreSQL 16 documentation: Chapter 13, Concurrency control; Chapter 30, Reliability and the write-ahead log*. Retrieved November 11, 2026, from https://www.postgresql.org/docs/16/
 
-Silberschatz, A., Korth, H. F., & Sudarshan, S. (2020). *Database system concepts* (7th ed.). McGraw-Hill.
+Silberschatz, A., Korth, H. F., & Sudarshan, S. (2020). *Database system concepts* (7th ed.). McGraw-Hill Education.

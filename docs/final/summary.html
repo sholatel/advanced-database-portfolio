@@ -19,10 +19,15 @@
   th { background: #eee; }
   td:first-child { white-space: nowrap; font-weight: 600; }
   code { font-family: Consolas, "Courier New", monospace; font-size: 8.6pt; }
-  .figs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5mm; margin: 1mm 0 2mm; }
+  tr { break-inside: avoid; }
+  .figs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2.5mm; margin: 1mm 0 2mm; }
   figure { margin: 0; break-inside: avoid; }
-  figure img { width: 100%; height: 44mm; object-fit: contain; border: 0.5pt solid #bbb; background: #fff; }
-  .placeholder { height: 44mm; border: 0.8pt dashed #888; display: flex; align-items: center; justify-content: center;
+  figure img { width: 100%; height: 33mm; object-fit: contain; border: 0.5pt solid #bbb; background: #fff; }
+  figure.tall img { height: 48mm; }
+  figure.wide { grid-column: 1 / -1; }
+  figure.wide img { height: auto; max-height: 66mm; }
+  figure.wide.short img { max-height: 32mm; }
+  .placeholder { height: 40mm; border: 0.8pt dashed #888; display: flex; align-items: center; justify-content: center;
                  text-align: center; color: #666; font-size: 8pt; padding: 2mm; background: #fafafa; }
   figcaption { font-size: 8.8pt; color: #333; margin-top: 0.8mm; }
   .refs p { font-size: 9pt; margin: 0 0 0.8mm; padding-left: 4mm; text-indent: -4mm; }
@@ -33,8 +38,8 @@
 
 <h1>OwoRail: an advanced database systems portfolio</h1>
 <div class="meta">
-  <b>Yusuf O. Sholadoye</b> · Student ID: ____________ · MIT 8103 Advanced Database Systems · Continuous assessment, September 2026 cohort<br>
-  <b>GitHub repository (private, shared with the assessor):</b> https://github.com/sholatel/advanced-database-portfolio
+  <b>Yusuf O. Sholadoye</b> · Student ID: 2026/A/MIT/0663 · MIT 8103 Advanced Database Systems · Continuous assessment, September 2026 cohort<br>
+  <b>GitHub repository:</b> <a href="https://github.com/sholatel/advanced-database-portfolio">https://github.com/sholatel/advanced-database-portfolio</a>
 </div>
 
 <h2>1. Selected organisation: OwoRail</h2>
@@ -67,12 +72,12 @@
 
 <h2>3. Evidence</h2>
 <div class="figs">
-  <!--fig:portfolio-1-database-design/erd/erd-chen.png|Figure 1. Chen ER diagram (Portfolio 1)-->
-  <!--fig:portfolio-2-query-optimisation/evidence/screenshots/m6_comparison.png|Figure 2. Before/after query timings and buffers (Portfolio 2)-->
-  <!--fig:portfolio-3-transactions-concurrency/evidence/screenshots/m8_deadlock.png|Figure 3. Deadlock detected between two sessions (Portfolio 3)-->
-  <!--fig:portfolio-4-nosql/evidence/screenshots/m9_explain_statement.png|Figure 4. explain(): statement served by one index (Portfolio 4)-->
-  <!--fig:portfolio-5-distributed-cloud/evidence/screenshots/m10_failover.png|Figure 5. Replica set after the primary was killed (Portfolio 5)-->
-  <!--fig:portfolio-3-transactions-concurrency/evidence/screenshots/m8_serializable.png|Figure 6. SERIALIZABLE refusing write skew (Portfolio 3)-->
+  <!--fig:portfolio-1-database-design/erd/erd-chen.png|Figure 1. Chen ER diagram (Portfolio 1)|tall-->
+  <!--fig:portfolio-4-nosql/evidence/screenshots/m9_explain_statement.png|Figure 2. explain(): the statement read through one index, 20 documents examined (Portfolio 4)|tall-->
+  <!--fig:portfolio-2-query-optimisation/evidence/screenshots/m6_comparison.png|Figure 3. Before/after query timings and buffers (Portfolio 2)|wide-->
+  <!--fig:portfolio-3-transactions-concurrency/evidence/screenshots/m8_deadlock.png|Figure 4. Deadlock detected between two sessions (Portfolio 3)-->
+  <!--fig:portfolio-3-transactions-concurrency/evidence/screenshots/m8_serializable.png|Figure 5. SERIALIZABLE refusing write skew (Portfolio 3)-->
+  <!--fig:portfolio-5-distributed-cloud/evidence/screenshots/m10_failover.png|Figure 6. Replica set after the primary was killed: a secondary took over (Portfolio 5)|wide short-->
 </div>
 <p class="small">Every result above comes from a captured output file: the exact command, time, exit code and unedited output, in the <code>evidence/</code> folder of each portfolio. Each portfolio's README explains how it was implemented and tested. <code>python tools/run_all.py</code> rebuilds and reruns everything. As a final check I ran all five portfolios from a fresh clone with new database volumes (<code>docs/fresh-run-check.md</code>).</p>
 

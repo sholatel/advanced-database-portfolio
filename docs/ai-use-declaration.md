@@ -18,7 +18,7 @@ I chose the case study (OwoRail, a Lagos digital-wallet operator) and its data c
 | Portfolio 3 | generated the concurrency demos that drive several database sessions; drafted the analysis and the two-terminal guide |
 | Portfolio 4 | generated the MongoDB schema, loader, query, validation and transaction scripts; drafted the document model and the suitability analysis |
 | Portfolio 5 | generated the replica set and sharded cluster configurations and the demo scripts; drafted the distributed and cloud design |
-| Final documentation | drafted this declaration, the summary document and a first version of my reflection from my decisions and the problems recorded in the AI log; I then revised the reflection so that it says what I think |
+| Final documentation | drafted this declaration, the summary document and my reflection from my decisions and the problems recorded in the AI log; I reviewed the reflection against my own experience of the work and confirmed that it says what I think |
 
 Some design choices were the assistant's recommendations, for example running the posting functions as `SECURITY DEFINER`, using a materialised view for monthly settlement, and running MongoDB as a single-node replica set. I accepted them only after reviewing each one. The [AI assistance log](ai-assistance-log.md) lists them separately for every milestone, under "Design decisions (approved at review)", so they are not presented as my own ideas.
 

@@ -19,13 +19,13 @@ CHROME_PATHS = [r"C:\Program Files\Google\Chrome\Application\chrome.exe",
 
 
 def figure(match: re.Match) -> str:
-    path, caption = match.group(1).strip(), html.escape(match.group(2).strip())
+    path, caption, size = match.group(1).strip(), html.escape(match.group(2).strip()), match.group(3) or ""
     image = REPO / path
     if image.exists():
         body = f'<img src="{image.as_uri()}" alt="{caption}">'
     else:
         body = f'<div class="placeholder">Screenshot to add:<br>{html.escape(path)}</div>'
-    return f"<figure>{body}<figcaption>{caption}</figcaption></figure>"
+    return f'<figure class="{size}">{body}<figcaption>{caption}</figcaption></figure>'
 
 
 def chrome() -> str:
@@ -37,7 +37,7 @@ def chrome() -> str:
 
 def main() -> int:
     source = (HERE / "summary.html").read_text(encoding="utf-8")
-    built = re.sub(r"<!--fig:([^|]+)\|(.+?)-->", figure, source)
+    built = re.sub(r"<!--fig:([^|]+)\|([^|]+?)(?:\|([\w ]+))?-->", figure, source)
     missing = len(re.findall("Screenshot to add", built))
     with tempfile.TemporaryDirectory() as tmp:
         page = Path(tmp) / "summary.html"

@@ -2,7 +2,7 @@
 
 **MIT 8103 Advanced Database Systems** · Continuous Assessment: Individual Practical Database Portfolio
 Miva Open University, School of Postgraduate Studies · Master of Information Technology, September 2026 cohort
-**Student:** Yusuf O. Sholadoye · **Matric number:** 2026/A/MIT/0663
+**Student:** Yusuf O. Sholadoye
 
 > **OwoRail is a fictional organisation** created for this coursework. A name check (7 Nov 2026) found no company of that name.
 > All people, phone numbers, identifiers (e.g. BVN-like values prefixed `999`) and transactions in this repository are **synthetic**. No real personal data or real company schema is used.

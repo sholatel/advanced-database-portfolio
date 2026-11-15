@@ -83,7 +83,7 @@ advanced-database-portfolio/
 ├── portfolio-4-nosql/                     P4 NoSQL and Advanced Data Models
 ├── portfolio-5-distributed-cloud/         P5 Distributed and Cloud Database Exercise
 └── docs/
-    ├── final/                             the 2-page LMS summary (HTML source, build script, PDF)
+    ├── final/                             the LMS summary (PDF)
     ├── reflection.md                      individual technical reflection
     ├── ai-use-declaration.md              AI Use Declaration
     ├── ai-assistance-log.md               record of AI assistance, step by step

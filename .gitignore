@@ -21,6 +21,10 @@ _reference/
 # Private working notes
 notes/
 
+# Local tooling for the LMS summary (only the PDF is published)
+docs/final/build_summary.py
+docs/final/summary.html
+
 # Database dumps and large generated data
 *.dump
 *.backup
